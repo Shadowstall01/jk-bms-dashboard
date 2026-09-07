@@ -489,12 +489,7 @@ Hours
 
 <div class="history-panel">
 
-<div class="chart-buttons">
-<button id="btnVoltage" class="active">Voltage</button>
-<button id="btnPower">Power</button>
-<button id="btnCurrent">Current</button>
-<button id="btnSOC">SOC</button>
-</div>
+<div style="color:#9aa6b2;font-size:13px;margin-bottom:10px;">Live update: Voltage / Current / Power / SOC (10 seconds interval)</div>
 
 <canvas id="historyChart"></canvas>
 
@@ -1120,13 +1115,13 @@ function updateBattery(data){
 }
 
 
+
 let historyLabels=[];
 let historyVoltage=[];
 let historyPower=[];
 let historyCurrent=[];
 let historySOC=[];
 
-let chartMode="voltage";
 let historyChart=null;
 
 function addHistory(data){
@@ -1134,106 +1129,130 @@ function addHistory(data){
     let now=new Date().toLocaleTimeString();
 
     historyLabels.push(now);
-    historyVoltage.push(Number(data.voltage));
-    historyPower.push(Number(data.power));
-    historyCurrent.push(Number(data.current));
-    historySOC.push(Number(data.soc));
+
+    historyVoltage.push(Number(data.voltage ?? data.pack_voltage ?? 0));
+    historyPower.push(Number(data.power ?? data.pack_power ?? 0));
+    historyCurrent.push(Number(data.current ?? data.pack_current ?? 0));
+    historySOC.push(Number(data.soc ?? 0));
+
 
     if(historyLabels.length>60){
+
         historyLabels.shift();
         historyVoltage.shift();
         historyPower.shift();
         historyCurrent.shift();
         historySOC.shift();
+
     }
 
     updateHistoryChart();
+
 }
+
 
 
 function updateHistoryChart(){
 
-    let values=historyVoltage;
-    let label="Voltage (V)";
-
-    if(chartMode==="power"){
-        values=historyPower;
-        label="Power (W)";
-    }
-
-    if(chartMode==="current"){
-        values=historyCurrent;
-        label="Current (A)";
-    }
-
-    if(chartMode==="soc"){
-        values=historySOC;
-        label="SOC (%)";
-    }
-
     if(!historyChart){
+
         historyChart=new Chart(
             document.getElementById("historyChart"),
             {
                 type:"line",
+
                 data:{
                     labels:historyLabels,
-                    datasets:[{
-                        label:label,
-                        data:values,
-                        borderColor:"#35d07f",
-                        backgroundColor:"rgba(53,208,127,0.15)",
+
+                    datasets:[
+
+                    {
+                        label:"Voltage (V)",
+                        data:historyVoltage,
                         tension:.3,
-                        fill:true
-                    }]
+                        fill:false
+                    },
+
+                    {
+                        label:"Power (W)",
+                        data:historyPower,
+                        tension:.3,
+                        fill:false
+                    },
+
+                    {
+                        label:"Current (A)",
+                        data:historyCurrent,
+                        tension:.3,
+                        fill:false
+                    },
+
+                    {
+                        label:"SOC (%)",
+                        data:historySOC,
+                        tension:.3,
+                        fill:false
+                    }
+
+                    ]
+
                 },
+
+
                 options:{
+
                     responsive:true,
+
+                    animation:false,
+
                     plugins:{
                         legend:{
-                            labels:{color:"#ffffff"}
+                            labels:{
+                                color:"#ffffff"
+                            }
                         }
                     },
+
                     scales:{
                         x:{
-                            ticks:{color:"#9aa6b2"}
+                            ticks:{
+                                color:"#9aa6b2"
+                            }
                         },
+
                         y:{
-                            ticks:{color:"#9aa6b2"}
+                            ticks:{
+                                color:"#9aa6b2"
+                            }
                         }
                     }
+
                 }
+
             }
+
         );
+
     }
+
     else{
+
         historyChart.data.labels=historyLabels;
-        historyChart.data.datasets[0].label=label;
-        historyChart.data.datasets[0].data=values;
+
+        historyChart.data.datasets[0].data=historyVoltage;
+        historyChart.data.datasets[1].data=historyPower;
+        historyChart.data.datasets[2].data=historyCurrent;
+        historyChart.data.datasets[3].data=historySOC;
+
         historyChart.update();
+
     }
+
 }
 
 
-document.addEventListener("DOMContentLoaded",()=>{
 
-    document.getElementById("btnVoltage").onclick=()=>{
-        chartMode="voltage"; updateHistoryChart();
-    };
 
-    document.getElementById("btnPower").onclick=()=>{
-        chartMode="power"; updateHistoryChart();
-    };
-
-    document.getElementById("btnCurrent").onclick=()=>{
-        chartMode="current"; updateHistoryChart();
-    };
-
-    document.getElementById("btnSOC").onclick=()=>{
-        chartMode="soc"; updateHistoryChart();
-    };
-
-});
 
 function updateDashboard(data) {
  updateBattery(data);
