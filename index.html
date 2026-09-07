@@ -406,6 +406,42 @@ body {
 <div class="cards">
 
     <div class="card">
+        <div class="label"><i class="fa-solid fa-battery-half card-icon"></i>Pack Voltage</div>
+        <div class="value" id="voltage">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-bolt card-icon"></i>Current</div>
+        <div class="value" id="current">---</div>
+        <span class="unit">A</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-gauge-high card-icon"></i>Power</div>
+        <div class="value" id="power">---</div>
+        <span class="unit">W</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-heart-pulse card-icon"></i>SOH</div>
+        <div class="value" id="soh">---</div>
+        <span class="unit">%</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-box-open card-icon"></i>Remaining</div>
+        <div class="value" id="remaining">---</div>
+        <span class="unit">Ah</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-battery-full card-icon"></i>Full Capacity</div>
+        <div class="value" id="full">---</div>
+        <span class="unit">Ah</span>
+    </div>
+
+    <div class="card">
         <div class="label"><i class="fa-solid fa-rotate card-icon"></i>Cycles</div>
         <div class="value" id="cycles">---</div>
     </div>
@@ -1098,17 +1134,13 @@ function updateBattery(data){
         fill.className = "battery-fill";
 
         status.innerHTML =
-            "IDLE<br>" +
-            "Remaining Time: ---";
+            "IDLE";
 
     }
 
 
-    document.getElementById("runtime").innerText =
-        formatRuntime(time);
-
-    document.getElementById("runtime2").innerText =
-        formatRuntime(time);
+    // Runtime is displayed only inside Battery Level status.
+    // Removed duplicate runtime cards.
 
 }
 
@@ -1307,14 +1339,6 @@ function updateDashboard(data) {
         numberValue(
             data.full_ah,
             3
-        );
-
-
-    document.getElementById(
-        "runtime"
-    ).innerText =
-        formatRuntime(
-            data.remaining_time
         );
 
 
