@@ -1029,7 +1029,7 @@ function updateBattery(data){
  }
 
  document.getElementById('runtime2').innerText =
- data.remaining_time ? Number(data.remaining_time).toFixed(2) : '---';
+ formatRuntime(data.remaining_time);
 }
 
 function updateDashboard(data) {
@@ -1092,9 +1092,8 @@ function updateDashboard(data) {
     document.getElementById(
         "runtime"
     ).innerText =
-        numberValue(
-            data.remaining_time,
-            2
+        formatRuntime(
+            data.remaining_time
         );
 
 
