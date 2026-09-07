@@ -172,56 +172,37 @@ body {
     display: none;
 }
 
-/* ===============================
-   BATTERY LEVEL BAR
-   =============================== */
-
-.battery-container {
-    background: #181e24;
-    border: 1px solid #303840;
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 15px;
+.battery-container{
+ background:#1f2937;
+ border-radius:14px;
+ padding:18px;
+ margin-top:15px;
 }
-
-.battery-title {
-    color: #8e9aa5;
-    font-size: 13px;
-    margin-bottom: 10px;
+.battery-title{
+ color:#9ca3af;
+ font-size:13px;
 }
-
-.battery-bar {
-    width: 100%;
-    height: 30px;
-    background: #303840;
-    border-radius: 15px;
-    overflow: hidden;
+.battery-bar{
+ width:100%;
+ height:35px;
+ background:#374151;
+ border-radius:18px;
+ overflow:hidden;
+ margin-top:12px;
 }
-
-.battery-fill {
-    height: 100%;
-    width: 0%;
-    transition: width 0.5s ease, background 0.5s ease;
-    background: #35d07f;
+.battery-fill{
+ height:100%;
+ width:0%;
+ transition:.5s;
 }
-
-.battery-info {
-    margin-top: 10px;
-    font-size: 22px;
-    font-weight: bold;
+.battery-percent{
+ font-size:28px;
+ font-weight:bold;
+ margin-top:10px;
 }
-
-.battery-status {
-    margin-top: 5px;
-    color: #9aa6b2;
-    font-size: 14px;
-}
-
-
-.battery-status {
-    margin-top: 8px;
-    font-size: 16px;
-    font-weight: bold;
+.battery-status{
+ font-size:16px;
+ margin-top:5px;
 }
 </style>
 
@@ -315,6 +296,10 @@ body {
         <span class="unit">W</span>
     </div>
 
+    
+        <span class="unit">%</span>
+    </div>
+
     <div class="card">
         <div class="label">SOH</div>
         <div class="value" id="soh">---</div>
@@ -342,27 +327,6 @@ body {
     <div class="card">
         <div class="label">Cycles</div>
         <div class="value" id="cycles">---</div>
-    </div>
-
-
-</div>
-
-<div class="battery-container">
-
-    <div class="battery-title">
-        Battery Level
-    </div>
-
-    <div class="battery-bar">
-        <div id="batteryFill" class="battery-fill"></div>
-    </div>
-
-    <div class="battery-info" id="batteryPercent">
-        ---
-    </div>
-
-    <div class="battery-status" id="batteryStatus">
-        ---
     </div>
 
 </div>
@@ -897,48 +861,33 @@ function formatPhilippineDate(timestamp) {
    ===================================================== */
 
 
-function updateBatteryBar(data) {
+function updateBattery(data){
+ let soc=Number(data.soc);
+ let fill=document.getElementById('batteryFill');
+ let pct=document.getElementById('batteryPercent');
+ let stat=document.getElementById('batteryStatus');
 
-    let soc = Number(data.soc);
+ if(!isNaN(soc)){
+   fill.style.width=soc+'%';
+   pct.innerText=soc.toFixed(0)+'%';
+   if(soc>=80) fill.style.background='#35d07f';
+   else if(soc>=40) fill.style.background='#f2c94c';
+   else fill.style.background='#ef4444';
+ }
 
-    if (isNaN(soc)) {
-        return;
-    }
+ if(data.battery_status){
+   stat.innerText=data.battery_status;
+ }else{
+   let c=Number(data.current);
+   stat.innerText=c < -0.5 ? 'DISCHARGING' : (c > 0.5 ? 'CHARGING':'IDLE');
+ }
 
-    let fill = document.getElementById("batteryFill");
-    let percent = document.getElementById("batteryPercent");
-    let status = document.getElementById("batteryStatus");
-
-    fill.style.width = soc + "%";
-    percent.innerText = soc.toFixed(0) + "%";
-
-    if (soc >= 80) {
-        fill.style.background = "#35d07f";
-    }
-    else if (soc >= 40) {
-        fill.style.background = "#f2c94c";
-    }
-    else {
-        fill.style.background = "#ff5c5c";
-    }
-
-    let current = Number(data.current);
-
-    if (!isNaN(current)) {
-        if (current < -0.5) {
-            status.innerText = "⚡ CHARGING";
-        }
-        else if (current > 0.5) {
-            status.innerText = "🔋 DISCHARGING";
-        }
-        else {
-            status.innerText = "⏸ IDLE";
-        }
-    }
+ document.getElementById('runtime2').innerText =
+ data.remaining_time ? Number(data.remaining_time).toFixed(2) : '---';
 }
 
-
 function updateDashboard(data) {
+ updateBattery(data);
 
     document.getElementById(
         "voltage"
@@ -974,9 +923,6 @@ function updateDashboard(data) {
             data.soc,
             0
         );
-
-
-    updateBatteryBar(data);
 
 
     document.getElementById(
