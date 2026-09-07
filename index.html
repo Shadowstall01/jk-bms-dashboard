@@ -1204,22 +1204,37 @@ function updateHistoryChart(){
 }
 
 
+function setChartButtonActive(id){
+    document.querySelectorAll(".chart-buttons button").forEach(btn=>{
+        btn.classList.remove("active");
+    });
+    document.getElementById(id).classList.add("active");
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
 
     document.getElementById("btnVoltage").onclick=()=>{
-        chartMode="voltage"; updateHistoryChart();
+        chartMode="voltage";
+        setChartButtonActive("btnVoltage");
+        updateHistoryChart();
     };
 
     document.getElementById("btnPower").onclick=()=>{
-        chartMode="power"; updateHistoryChart();
+        chartMode="power";
+        setChartButtonActive("btnPower");
+        updateHistoryChart();
     };
 
     document.getElementById("btnCurrent").onclick=()=>{
-        chartMode="current"; updateHistoryChart();
+        chartMode="current";
+        setChartButtonActive("btnCurrent");
+        updateHistoryChart();
     };
 
     document.getElementById("btnSOC").onclick=()=>{
-        chartMode="soc"; updateHistoryChart();
+        chartMode="soc";
+        setChartButtonActive("btnSOC");
+        updateHistoryChart();
     };
 
 });
