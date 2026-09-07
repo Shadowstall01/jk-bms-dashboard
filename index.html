@@ -217,6 +217,12 @@ body {
     font-size: 14px;
 }
 
+
+.battery-status {
+    margin-top: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
 </style>
 
 </head>
@@ -307,12 +313,6 @@ body {
         <div class="label">Power</div>
         <div class="value" id="power">---</div>
         <span class="unit">W</span>
-    </div>
-
-    <div class="card">
-        <div class="label">SOC</div>
-        <div class="value" id="soc">---</div>
-        <span class="unit">%</span>
     </div>
 
     <div class="card">
@@ -932,7 +932,7 @@ function updateBatteryBar(data) {
             status.innerText = "🔋 DISCHARGING";
         }
         else {
-            status.innerText = "IDLE";
+            status.innerText = "⏸ IDLE";
         }
     }
 }
