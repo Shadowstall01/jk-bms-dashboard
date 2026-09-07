@@ -1051,68 +1051,115 @@ function formatPhilippineDate(timestamp) {
 
 
 
+
 function formatRuntime(value){
 
-    if(value===undefined || value===null || value==="") return "---";
+    let hours = Number(value);
 
-    let hours=Number(value);
-    if(isNaN(hours) || hours<=0) return "---";
+    if(isNaN(hours) || hours <= 0){
+        return "---";
+    }
 
-    let totalMinutes=Math.round(hours*60);
-    let h=Math.floor(totalMinutes/60);
-    let m=totalMinutes%60;
+    let totalMinutes = Math.round(hours * 60);
 
-    if(h>0) return h+"h "+m+"m";
-    return m+"m";
+    let h = Math.floor(totalMinutes / 60);
+
+    let m = totalMinutes % 60;
+
+
+    if(h > 0){
+        return h + "h " + m + "m";
+    }
+
+    return m + "m";
+
 }
+
+
 
 function updateBattery(data){
 
-    let soc=Number(data.soc);
-    let fill=document.getElementById('batteryFill');
-    let pct=document.getElementById('batteryPercent');
-    let stat=document.getElementById('batteryStatus');
+    let soc = Number(data.soc);
+
+    let fill = document.getElementById("batteryFill");
+    let percent = document.getElementById("batteryPercent");
+    let status = document.getElementById("batteryStatus");
+
 
     if(!isNaN(soc)){
-        fill.style.width=soc+'%';
-        pct.innerText=soc.toFixed(0)+'%';
-        fill.className='battery-fill';
-        if(soc<20) fill.classList.add('low');
+        fill.style.width = soc + "%";
+        percent.innerText = soc.toFixed(0) + "%";
     }
 
-    let current=Number(data.current ?? data.pack_current);
-    let estimate=0;
-    let mode='IDLE';
 
-    if(current>0.5){
-        mode='CHARGING';
-        fill.classList.add('charging');
-        let remaining=Number(data.remaining_ah);
-        let full=Number(data.full_ah);
-        if(!isNaN(remaining)&&!isNaN(full)&&current>0){
-            let need=full-remaining;
-            if(need>0) estimate=need/current;
+    let current = Number(data.current ?? data.pack_current ?? 0);
+    let remaining = Number(data.remaining_ah ?? 0);
+    let full = Number(data.full_ah ?? 0);
+
+    let time = 0;
+    let mode = "IDLE";
+
+
+    if(current > 0.5){
+
+        mode = "CHARGING";
+        fill.className = "battery-fill charging";
+
+        if(full > remaining && current > 0){
+
+            let needed = full - remaining;
+            time = needed / current;
+
         }
-    }
-    else if(current<-0.5){
-        mode='DISCHARGING';
-        fill.classList.add('discharging');
-        let remaining=Number(data.remaining_ah);
-        let load=Math.abs(current);
-        if(!isNaN(remaining)&&load>0) estimate=remaining/load;
+
+
+        status.innerHTML =
+            "CHARGING<br>" +
+            "Time To Full: " +
+            formatRuntime(time);
+
     }
 
-    stat.innerText=mode;
 
-    let t=formatRuntime(estimate);
-    if(document.getElementById('runtime')) document.getElementById('runtime').innerText=t;
-    if(document.getElementById('runtime2')) document.getElementById('runtime2').innerText=t;
+    else if(current < -0.5){
 
-    let label=document.querySelector('.battery-container div:nth-child(5)');
-    if(label){
-        label.innerHTML = mode==='CHARGING' ? 'Time To Full:' : (mode==='DISCHARGING' ? 'Runtime Left:' : 'Remaining Time:');
+        mode = "DISCHARGING";
+        fill.className = "battery-fill discharging";
+
+        if(remaining > 0){
+
+            time = remaining / Math.abs(current);
+
+        }
+
+
+        status.innerHTML =
+            "DISCHARGING<br>" +
+            "Runtime Left: " +
+            formatRuntime(time);
+
     }
+
+
+    else{
+
+        fill.className = "battery-fill";
+
+        status.innerHTML =
+            "IDLE<br>" +
+            "Remaining Time: ---";
+
+    }
+
+
+    document.getElementById("runtime").innerText =
+        formatRuntime(time);
+
+    document.getElementById("runtime2").innerText =
+        formatRuntime(time);
+
 }
+
 
 
 
