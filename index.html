@@ -195,6 +195,7 @@ body {
  height:100%;
  width:0%;
  transition:.5s;
+ background:#35d07f;
 }
 .battery-percent{
  font-size:30px;
@@ -205,6 +206,25 @@ body {
  font-size:16px;
  margin-top:5px;
 }
+
+.battery-status{
+ font-size:16px;
+ font-weight:bold;
+ margin-top:8px;
+}
+
+.battery-fill.charging{
+ background:#35d07f !important;
+}
+
+.battery-fill.discharging{
+ background:#3498db !important;
+}
+
+.battery-fill.low{
+ background:#ff5c5c !important;
+}
+
 </style>
 
 </head>
@@ -894,9 +914,11 @@ function updateBattery(data){
  if(!isNaN(soc)){
    fill.style.width=soc+'%';
    pct.innerText=soc.toFixed(0)+'%';
-   if(soc>=80) fill.style.background='#35d07f';
-   else if(soc>=40) fill.style.background='#f2c94c';
-   else fill.style.background='#ef4444';
+   fill.className = "battery-fill";
+
+   if(soc < 20){
+      fill.classList.add("low");
+   }
  }
 
  if(data.battery_status){
