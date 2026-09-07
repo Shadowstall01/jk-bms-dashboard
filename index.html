@@ -261,6 +261,45 @@ body {
 .cell.warn { border-color:#f2c94c; }
 .cell.bad { border-color:#ff5c5c; }
 .cell-status-icon { margin-right:5px; }
+
+.cell-health-summary{
+    background:#181e24;
+    border:1px solid #303840;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:12px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;
+}
+
+.health-item{
+    background:#101418;
+    border-radius:10px;
+    padding:12px;
+}
+
+.health-label{
+    color:#8e9aa5;
+    font-size:12px;
+}
+
+.health-value{
+    font-size:20px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.health-good{color:#35d07f;}
+.health-warn{color:#f2c94c;}
+.health-bad{color:#ff5c5c;}
+
+.cell-status{
+    font-size:12px;
+    margin-top:5px;
+    font-weight:bold;
+}
+
 </style>
 
 </head>
@@ -441,6 +480,31 @@ Hours
         <div class="value" id="delta">---</div>
         <span class="unit">mV</span>
     </div>
+
+</div>
+
+
+<div class="cell-health-summary">
+
+<div class="health-item">
+<div class="health-label">🧬 Balance Status</div>
+<div class="health-value" id="cellHealthStatus">---</div>
+</div>
+
+<div class="health-item">
+<div class="health-label">⚖ Delta</div>
+<div class="health-value" id="cellHealthDelta">---</div>
+</div>
+
+<div class="health-item">
+<div class="health-label">⬆ Highest Cell</div>
+<div class="health-value" id="cellHealthMax">---</div>
+</div>
+
+<div class="health-item">
+<div class="health-label">⬇ Lowest Cell</div>
+<div class="health-value" id="cellHealthMin">---</div>
+</div>
 
 </div>
 
@@ -1300,6 +1364,26 @@ function updateCells(data) {
         cell.appendChild(
             voltage
         );
+
+        const status = document.createElement("div");
+        status.className = "cell-status";
+
+        if(!isNaN(v)){
+            if(v >= 3.27){
+                status.innerText = "GOOD";
+                status.style.color = "#35d07f";
+            }
+            else if(v >= 3.25){
+                status.innerText = "WARNING";
+                status.style.color = "#f2c94c";
+            }
+            else{
+                status.innerText = "LOW";
+                status.style.color = "#ff5c5c";
+            }
+        }
+
+        cell.appendChild(status);
 
 
         container.appendChild(
