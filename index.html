@@ -332,6 +332,33 @@ body {
 </div>
 
 
+
+<div class="battery-container">
+
+<div class="battery-title">
+Battery Level
+</div>
+
+<div class="battery-bar">
+<div id="batteryFill" class="battery-fill"></div>
+</div>
+
+<div id="batteryPercent" class="battery-percent">
+---
+</div>
+
+<div id="batteryStatus" class="battery-status">
+---
+</div>
+
+<div>
+Remaining Time:
+<span id="runtime2">---</span>
+Hours
+</div>
+
+</div>
+
 <div class="section-title">
     Cells
 </div>
@@ -913,15 +940,6 @@ function updateDashboard(data) {
         numberValue(
             data.power,
             2
-        );
-
-
-    document.getElementById(
-        "soc"
-    ).innerText =
-        numberValue(
-            data.soc,
-            0
         );
 
 
