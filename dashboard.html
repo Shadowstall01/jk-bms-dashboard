@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JK BMS Remote Monitor</title>
+
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #101418;
+    color: #ffffff;
+}
+
+.header {
+    background: #181e24;
+    padding: 18px 20px;
+    border-bottom: 1px solid #303840;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.online {
+    color: #35d07f;
+}
+
+.offline {
+    color: #ff5c5c;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.section-title {
+    margin-top: 25px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    color: #b9c4ce;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.card {
+    background: #181e24;
+    border: 1px solid #303840;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.label {
+    color: #8e9aa5;
+    font-size: 13px;
+}
+
+.value {
+    margin-top: 7px;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.unit {
+    font-size: 14px;
+    color: #9aa6b2;
+}
+
+.cells {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.cell {
+    background: #181e24;
+    border: 1px solid #303840;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+
+.cell-number {
+    color: #8e9aa5;
+    font-size: 13px;
+}
+
+.cell-voltage {
+    margin-top: 5px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.footer {
+    margin-top: 30px;
+    padding: 15px;
+    text-align: center;
+    color: #697580;
+    font-size: 12px;
+}
+
+.login {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.login-box {
+    width: min(420px, 90%);
+    background: #181e24;
+    border: 1px solid #303840;
+    border-radius: 14px;
+    padding: 25px;
+}
+
+.login-box h2 {
+    margin-top: 0;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 13px;
+    margin-top: 10px;
+    background: #101418;
+    border: 1px solid #3a444e;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 15px;
+    border: 0;
+    border-radius: 8px;
+    background: #35d07f;
+    color: #08100c;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.error {
+    color: #ff6868;
+    margin-top: 10px;
+    font-size: 13px;
+    display: none;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="login" id="loginScreen">
+    <div class="login-box">
+        <h2>JK BMS Remote Monitor</h2>
+
+```
+    <div style="color:#9aa6b2;font-size:13px;">
+        Enter your HiveMQ dashboard MQTT credentials.
+    </div>
+
+    <input
+        id="mqttUser"
+        type="text"
+        placeholder="MQTT Username"
+        value="nejs23"
+    >
+
+    <input
+        id="mqttPassword"
+        type="password"
+        placeholder="MQTT Password"
+    >
+
+    <button onclick="connectMQTT()">CONNECT</button>
+
+    <div class="error" id="loginError">
+        MQTT connection failed.
+    </div>
+</div>
+```
+
+</div>
+
+<div class="header">
+    <h1>JK BMS V19 Monitor</h1>
+
+```
+<div class="status">
+    MQTT:
+    <span id="mqttStatus" class="offline">DISCONNECTED</span>
+</div>
+
+<div class="status">
+    Last BMS update:
+    <span id="lastUpdate">---</span>
+</div>
+```
+
+</div>
+
+<div class="container">
+
+```
+<div class="section-title">Battery</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label">Pack Voltage</div>
+        <div class="value" id="voltage">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Current</div>
+        <div class="value" id="current">---</div>
+        <span class="unit">A</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Power</div>
+        <div class="value" id="power">---</div>
+        <span class="unit">W</span>
+    </div>
+
+    <div class="card">
+        <div class="label">SOC</div>
+        <div class="value" id="soc">---</div>
+        <span class="unit">%</span>
+    </div>
+
+    <div class="card">
+        <div class="label">SOH</div>
+        <div class="value" id="soh">---</div>
+        <span class="unit">%</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Remaining</div>
+        <div class="value" id="remaining">---</div>
+        <span class="unit">Ah</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Full Capacity</div>
+        <div class="value" id="full">---</div>
+        <span class="unit">Ah</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Cycles</div>
+        <div class="value" id="cycles">---</div>
+    </div>
+
+</div>
+
+<div class="section-title">Cells</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label">Average Cell</div>
+        <div class="value" id="avgCell">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Minimum Cell</div>
+        <div class="value" id="minCell">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Maximum Cell</div>
+        <div class="value" id="maxCell">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label">Cell Delta</div>
+        <div class="value" id="delta">---</div>
+        <span class="unit">mV</span>
+    </div>
+
+</div>
+
+<div class="cells" id="cells"></div>
+
+<div class="section-title">Temperature</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label">MOS Temperature</div>
+        <div class="value" id="tempMos">---</div>
+        <span class="unit">°C</span>
+    </div>
+
+    <div class="card">
+        <div class="label">BAT1 Temperature</div>
+        <div class="value" id="tempBat1">---</div>
+        <span class="unit">°C</span>
+    </div>
+
+    <div class="card">
+        <div class="label">BAT2 Temperature</div>
+        <div class="value" id="tempBat2">---</div>
+        <span class="unit">°C</span>
+    </div>
+
+</div>
+
+<div class="section-title">Protection / MOS</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label">Charge MOS</div>
+        <div class="value" id="chargeMos">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Discharge MOS</div>
+        <div class="value" id="dischargeMos">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Balancing</div>
+        <div class="value" id="balanceState">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Balance Current</div>
+        <div class="value" id="balanceCurrent">---</div>
+        <span class="unit">mA</span>
+    </div>
+
+</div>
+
+<div class="section-title">System</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label">WiFi RSSI</div>
+        <div class="value" id="wifiRssi">---</div>
+        <span class="unit">dBm</span>
+    </div>
+
+    <div class="card">
+        <div class="label">BMS Model</div>
+        <div class="value" id="model" style="font-size:17px;">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Software</div>
+        <div class="value" id="software" style="font-size:20px;">---</div>
+    </div>
+
+</div>
+
+<div class="footer">
+    JK BMS V19 Remote Monitor
+</div>
+```
+
+</div>
+
+<script>
+
+const MQTT_HOST =
+    "wss://4c3d779ff55d416f8193eaa976fce2c4.s1.eu.hivemq.cloud:8884/mqtt";
+
+const MQTT_TOPIC = "jk-bms/data";
+
+let mqttClient = null;
+
+function connectMQTT() {
+
+    const username =
+        document.getElementById("mqttUser").value.trim();
+
+    const password =
+        document.getElementById("mqttPassword").value;
+
+    const error =
+        document.getElementById("loginError");
+
+    error.style.display = "none";
+
+    if (!username || !password) {
+        error.innerText = "Enter MQTT username and password.";
+        error.style.display = "block";
+        return;
+    }
+
+    if (mqttClient) {
+        try {
+            mqttClient.end(true);
+        } catch(e) {}
+    }
+
+    setStatus("CONNECTING", false);
+
+    mqttClient = mqtt.connect(MQTT_HOST, {
+
+        username: username,
+        password: password,
+
+        clientId:
+            "jk-dashboard-" +
+            Math.random().toString(16).substring(2),
+
+        clean: true,
+
+        reconnectPeriod: 5000,
+
+        connectTimeout: 10000,
+
+        keepalive: 30
+    });
+
+    mqttClient.on("connect", function() {
+
+        console.log("MQTT CONNECTED");
+
+        setStatus("CONNECTED", true);
+
+        mqttClient.subscribe(
+            MQTT_TOPIC,
+            function(err) {
+
+                if (err) {
+                    console.error(
+                        "Subscribe error:",
+                        err
+                    );
+
+                    setStatus(
+                        "SUBSCRIBE ERROR",
+                        false
+                    );
+
+                    return;
+                }
+
+                console.log(
+                    "SUBSCRIBED:",
+                    MQTT_TOPIC
+                );
+
+                document.getElementById(
+                    "loginScreen"
+                ).style.display = "none";
+            }
+        );
+    });
+
+    mqttClient.on("message", function(topic, message) {
+
+        if (topic !== MQTT_TOPIC) {
+            return;
+        }
+
+        try {
+
+            const data =
+                JSON.parse(message.toString());
+
+            console.log("BMS DATA:", data);
+
+            updateDashboard(data);
+
+        } catch(error) {
+
+            console.error(
+                "JSON parse error:",
+                error
+            );
+        }
+    });
+
+    mqttClient.on("error", function(error) {
+
+        console.error(
+            "MQTT ERROR:",
+            error
+        );
+
+        setStatus(
+            "ERROR",
+            false
+        );
+
+        document.getElementById(
+            "loginError"
+        ).innerText =
+            "MQTT connection failed. Check username/password.";
+
+        document.getElementById(
+            "loginError"
+        ).style.display = "block";
+    });
+
+    mqttClient.on("close", function() {
+
+        console.log("MQTT DISCONNECTED");
+
+        setStatus(
+            "DISCONNECTED",
+            false
+        );
+    });
+
+    mqttClient.on("reconnect", function() {
+
+        setStatus(
+            "RECONNECTING",
+            false
+        );
+    });
+}
+
+function setStatus(text, online) {
+
+    const element =
+        document.getElementById("mqttStatus");
+
+    element.innerText = text;
+
+    element.className =
+        online ? "online" : "offline";
+}
+
+function numberValue(value, decimals = 2) {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+        return "---";
+    }
+
+    const number =
+        Number(value);
+
+    if (isNaN(number)) {
+        return "---";
+    }
+
+    return number.toFixed(decimals);
+}
+
+function textValue(value) {
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+        return "---";
+    }
+
+    return value;
+}
+
+function updateDashboard(data) {
+
+    document.getElementById("voltage").innerText =
+        numberValue(data.voltage, 3);
+
+    document.getElementById("current").innerText =
+        numberValue(data.current, 3);
+
+    document.getElementById("power").innerText =
+        numberValue(data.power, 2);
+
+    document.getElementById("soc").innerText =
+        numberValue(data.soc, 0);
+
+    document.getElementById("soh").innerText =
+        numberValue(data.soh, 0);
+
+    document.getElementById("remaining").innerText =
+        numberValue(data.remaining_ah, 3);
+
+    document.getElementById("full").innerText =
+        numberValue(data.full_ah, 3);
+
+    document.getElementById("cycles").innerText =
+        numberValue(data.cycles, 0);
+
+    document.getElementById("avgCell").innerText =
+        numberValue(data.avg_cell, 3);
+
+    document.getElementById("minCell").innerText =
+        numberValue(data.min_cell, 3);
+
+    document.getElementById("maxCell").innerText =
+        numberValue(data.max_cell, 3);
+
+    document.getElementById("delta").innerText =
+        numberValue(data.delta_mV, 0);
+
+    document.getElementById("tempMos").innerText =
+        numberValue(data.temp_mos, 1);
+
+    document.getElementById("tempBat1").innerText =
+        numberValue(data.temp_bat1, 1);
+
+    document.getElementById("tempBat2").innerText =
+        numberValue(data.temp_bat2, 1);
+
+    document.getElementById("chargeMos").innerText =
+        data.charge_mos ? "ON" : "OFF";
+
+    document.getElementById("dischargeMos").innerText =
+        data.discharge_mos ? "ON" : "OFF";
+
+    document.getElementById("balanceState").innerText =
+        data.balance_state ? "ON" : "OFF";
+
+    document.getElementById("balanceCurrent").innerText =
+        numberValue(
+            data.balance_current_mA,
+            0
+        );
+
+    document.getElementById("wifiRssi").innerText =
+        numberValue(data.wifi_rssi, 0);
+
+    document.getElementById("model").innerText =
+        textValue(data.model);
+
+    document.getElementById("software").innerText =
+        textValue(data.software);
+
+    updateCells(data);
+
+    let updateText = "---";
+
+    if (data.timestamp) {
+
+        try {
+
+            const date =
+                new Date(data.timestamp);
+
+            updateText =
+                date.toLocaleString();
+
+        } catch(e) {
+
+            updateText =
+                data.timestamp;
+        }
+
+    } else {
+
+        updateText =
+            new Date().toLocaleString();
+    }
+
+    document.getElementById(
+        "lastUpdate"
+    ).innerText = updateText;
+}
+
+function updateCells(data) {
+
+    const container =
+        document.getElementById("cells");
+
+    container.innerHTML = "";
+
+    for (let i = 1; i <= 16; i++) {
+
+        const key =
+            "cell" + i;
+
+        const value =
+            data[key];
+
+        const cell =
+            document.createElement("div");
+
+        cell.className = "cell";
+
+        const number =
+            document.createElement("div");
+
+        number.className =
+            "cell-number";
+
+        number.innerText =
+            "CELL " +
+            String(i).padStart(2, "0");
+
+        const voltage =
+            document.createElement("div");
+
+        voltage.className =
+            "cell-voltage";
+
+        if (
+            value === undefined ||
+            value === null ||
+            Number(value) === 0
+        ) {
+
+            voltage.innerText =
+                "---";
+
+        } else {
+
+            voltage.innerText =
+                Number(value).toFixed(3) +
+                " V";
+        }
+
+        cell.appendChild(number);
+        cell.appendChild(voltage);
+
+        container.appendChild(cell);
+    }
+}
+
+</script>
+
+</body>
+</html>
