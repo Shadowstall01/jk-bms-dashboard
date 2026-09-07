@@ -217,7 +217,7 @@ body {
 <div class="header">
 
 ```
-<h1>JK BMS V19 Monitor</h1>
+<h1>JK BMS V19 Monitor - 8S LiFePO4</h1>
 
 <div class="status">
     MQTT:
@@ -417,7 +417,7 @@ body {
 
 
 <div class="footer">
-    JK BMS V19 Remote Monitor
+    JK BMS V19 Remote Monitor - 8S
 </div>
 ```
 
@@ -1048,7 +1048,8 @@ function updateDashboard(data) {
 
 
 /* =====================================================
-   UPDATE CELLS
+   UPDATE CELLS - 8 CELL BATTERY ONLY
+   Cell 9-16 removed
    ===================================================== */
 
 function updateCells(data) {
@@ -1065,7 +1066,7 @@ function updateCells(data) {
 
     for (
         let i = 1;
-        i <= 16;
+        i <= 8;
         i++
     ) {
 
