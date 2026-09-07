@@ -1262,7 +1262,45 @@ function updateDashboard(data) {
    Cell 9-16 removed
    ===================================================== */
 
+function updateCellHealth(data){
+
+    const health = document.getElementById("cellHealthStatus");
+    const deltaBox = document.getElementById("cellHealthDelta");
+    const maxBox = document.getElementById("cellHealthMax");
+    const minBox = document.getElementById("cellHealthMin");
+
+    let delta = Number(data.delta_mV);
+
+    if(!isNaN(delta)){
+        deltaBox.innerText = delta.toFixed(0) + " mV";
+
+        if(delta <= 10){
+            health.innerText = "GOOD";
+            health.className = "health-value health-good";
+        }
+        else if(delta <= 30){
+            health.innerText = "WARNING";
+            health.className = "health-value health-warn";
+        }
+        else{
+            health.innerText = "ALERT";
+            health.className = "health-value health-bad";
+        }
+    }
+
+    if(data.max_cell !== undefined){
+        maxBox.innerText = Number(data.max_cell).toFixed(3) + " V";
+    }
+
+    if(data.min_cell !== undefined){
+        minBox.innerText = Number(data.min_cell).toFixed(3) + " V";
+    }
+}
+
+
 function updateCells(data) {
+
+    updateCellHealth(data);
 
     const container =
         document.getElementById(
