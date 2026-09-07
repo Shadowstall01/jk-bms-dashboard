@@ -256,6 +256,11 @@ body {
     color:#9aa6b2;
 }
 
+
+.cell.good { border-color:#35d07f; }
+.cell.warn { border-color:#f2c94c; }
+.cell.bad { border-color:#ff5c5c; }
+.cell-status-icon { margin-right:5px; }
 </style>
 
 </head>
@@ -1273,6 +1278,19 @@ function updateCells(data) {
                 " V";
         }
 
+
+        let v = Number(value);
+        if(!isNaN(v)){
+            if(v >= 3.27){
+                cell.classList.add("good");
+            }
+            else if(v >= 3.25){
+                cell.classList.add("warn");
+            }
+            else{
+                cell.classList.add("bad");
+            }
+        }
 
         cell.appendChild(
             number
