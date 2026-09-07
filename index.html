@@ -1120,6 +1120,39 @@ let historySOC=[];
 
 let historyChart=null;
 
+function saveHistory(){
+    localStorage.setItem("jk_bms_history", JSON.stringify({
+        labels: historyLabels,
+        voltage: historyVoltage,
+        power: historyPower,
+        current: historyCurrent,
+        soc: historySOC
+    }));
+}
+
+function loadHistory(){
+    let saved = localStorage.getItem("jk_bms_history");
+
+    if(saved){
+        try{
+            let data = JSON.parse(saved);
+
+            historyLabels = data.labels || [];
+            historyVoltage = data.voltage || [];
+            historyPower = data.power || [];
+            historyCurrent = data.current || [];
+            historySOC = data.soc || [];
+
+            if(historyLabels.length > 0){
+                updateHistoryChart();
+            }
+        }
+        catch(e){
+            console.error("History load error", e);
+        }
+    }
+}
+
 function addHistory(data){
 
     let now=new Date().toLocaleTimeString();
@@ -1137,6 +1170,8 @@ function addHistory(data){
         historyCurrent.shift();
         historySOC.shift();
     }
+
+    saveHistory();
 
     updateHistoryChart();
 }
@@ -1239,6 +1274,8 @@ function updateHistoryChart(){
 
 }
 
+
+loadHistory();
 
 function updateDashboard(data) {
  updateBattery(data);
