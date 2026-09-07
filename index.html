@@ -1005,6 +1005,33 @@ function formatPhilippineDate(timestamp) {
    ===================================================== */
 
 
+
+function formatRuntime(value){
+    if(value === undefined || value === null || value === ""){
+        return "---";
+    }
+
+    let hours = Number(value);
+
+    if(isNaN(hours)){
+        return "---";
+    }
+
+    let totalMinutes = Math.round(hours * 60);
+    let h = Math.floor(totalMinutes / 60);
+    let m = totalMinutes % 60;
+
+    if(h > 0 && m > 0){
+        return h + "h " + m + "m";
+    }
+    else if(h > 0){
+        return h + "h";
+    }
+    else{
+        return m + "m";
+    }
+}
+
 function updateBattery(data){
  let soc=Number(data.soc);
  let fill=document.getElementById('batteryFill');
