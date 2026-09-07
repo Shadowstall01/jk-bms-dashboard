@@ -808,6 +808,7 @@ function connectMQTT() {
 
 
                 updateDashboard(data);
+                addHistory(data);
 
             }
             catch(error) {
@@ -1084,7 +1085,7 @@ function updateBattery(data){
         if(soc<20) fill.classList.add('low');
     }
 
-    let current=Number(data.current);
+    let current=Number(data.current ?? data.pack_current);
     let estimate=0;
     let mode='IDLE';
 
@@ -1241,7 +1242,7 @@ function updateDashboard(data) {
         "voltage"
     ).innerText =
         numberValue(
-            data.voltage,
+            (data.voltage ?? data.pack_voltage),
             3
         );
 
@@ -1250,7 +1251,7 @@ function updateDashboard(data) {
         "current"
     ).innerText =
         numberValue(
-            data.current,
+            (data.current ?? data.pack_current),
             3
         );
 
@@ -1259,7 +1260,7 @@ function updateDashboard(data) {
         "power"
     ).innerText =
         numberValue(
-            data.power,
+            (data.power ?? data.pack_power),
             2
         );
 
