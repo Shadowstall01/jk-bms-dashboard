@@ -1155,6 +1155,9 @@ function loadHistory(){
 
 function addHistory(data){
 
+    checkDailyReset();
+setInterval(checkDailyReset, 60000);
+
     let now=new Date().toLocaleTimeString();
 
     historyLabels.push(now);
@@ -1275,7 +1278,46 @@ function updateHistoryChart(){
 }
 
 
+
+// ===== DAILY GRAPH RESET (12:00 AM Philippine Time) =====
+
+function getPHDate(){
+    return new Intl.DateTimeFormat("en-PH", {
+        timeZone:"Asia/Manila",
+        year:"numeric",
+        month:"2-digit",
+        day:"2-digit"
+    }).format(new Date());
+}
+
+function checkDailyReset(){
+
+    let today = getPHDate();
+    let savedDate = localStorage.getItem("jk_bms_history_date");
+
+    if(savedDate && savedDate !== today){
+
+        historyLabels = [];
+        historyVoltage = [];
+        historyPower = [];
+        historyCurrent = [];
+        historySOC = [];
+
+        localStorage.removeItem("jk_bms_history");
+
+        if(historyChart){
+            historyChart.data.labels = [];
+            historyChart.data.datasets.forEach(ds => ds.data = []);
+            historyChart.update();
+        }
+    }
+
+    localStorage.setItem("jk_bms_history_date", today);
+}
+
+
 loadHistory();
+checkDailyReset();
 
 function updateDashboard(data) {
  updateBattery(data);
