@@ -178,10 +178,12 @@ body {
 <body>
 
 <div class="login" id="loginScreen">
-    <div class="login-box">
-        <h2>JK BMS Remote Monitor</h2>
 
 ```
+<div class="login-box">
+
+    <h2>JK BMS Remote Monitor</h2>
+
     <div style="color:#9aa6b2;font-size:13px;">
         Enter your HiveMQ dashboard MQTT credentials.
     </div>
@@ -199,28 +201,36 @@ body {
         placeholder="MQTT Password"
     >
 
-    <button onclick="connectMQTT()">CONNECT</button>
+    <button onclick="connectMQTT()">
+        CONNECT
+    </button>
 
     <div class="error" id="loginError">
         MQTT connection failed.
     </div>
+
 </div>
 ```
 
 </div>
 
 <div class="header">
-    <h1>JK BMS V19 Monitor</h1>
 
 ```
+<h1>JK BMS V19 Monitor</h1>
+
 <div class="status">
     MQTT:
-    <span id="mqttStatus" class="offline">DISCONNECTED</span>
+    <span id="mqttStatus" class="offline">
+        DISCONNECTED
+    </span>
 </div>
 
 <div class="status">
     Last BMS update:
-    <span id="lastUpdate">---</span>
+    <span id="lastUpdate">
+        ---
+    </span>
 </div>
 ```
 
@@ -229,7 +239,9 @@ body {
 <div class="container">
 
 ```
-<div class="section-title">Battery</div>
+<div class="section-title">
+    Battery
+</div>
 
 <div class="cards">
 
@@ -282,7 +294,10 @@ body {
 
 </div>
 
-<div class="section-title">Cells</div>
+
+<div class="section-title">
+    Cells
+</div>
 
 <div class="cards">
 
@@ -314,7 +329,10 @@ body {
 
 <div class="cells" id="cells"></div>
 
-<div class="section-title">Temperature</div>
+
+<div class="section-title">
+    Temperature
+</div>
 
 <div class="cards">
 
@@ -338,7 +356,10 @@ body {
 
 </div>
 
-<div class="section-title">Protection / MOS</div>
+
+<div class="section-title">
+    Protection / MOS
+</div>
 
 <div class="cards">
 
@@ -365,7 +386,10 @@ body {
 
 </div>
 
-<div class="section-title">System</div>
+
+<div class="section-title">
+    System
+</div>
 
 <div class="cards">
 
@@ -377,15 +401,20 @@ body {
 
     <div class="card">
         <div class="label">BMS Model</div>
-        <div class="value" id="model" style="font-size:17px;">---</div>
+        <div class="value" id="model" style="font-size:17px;">
+            ---
+        </div>
     </div>
 
     <div class="card">
         <div class="label">Software</div>
-        <div class="value" id="software" style="font-size:20px;">---</div>
+        <div class="value" id="software" style="font-size:20px;">
+            ---
+        </div>
     </div>
 
 </div>
+
 
 <div class="footer">
     JK BMS V19 Remote Monitor
@@ -399,9 +428,15 @@ body {
 const MQTT_HOST =
     "wss://4c3d779ff55d416f8193eaa976fce2c4.s1.eu.hivemq.cloud:8884/mqtt";
 
-const MQTT_TOPIC = "jk-bms/data";
+const MQTT_TOPIC =
+    "jk-bms/data";
 
 let mqttClient = null;
+
+
+/* =====================================================
+   MQTT CONNECT
+   ===================================================== */
 
 function connectMQTT() {
 
@@ -417,168 +452,272 @@ function connectMQTT() {
     error.style.display = "none";
 
     if (!username || !password) {
-        error.innerText = "Enter MQTT username and password.";
-        error.style.display = "block";
+
+        error.innerText =
+            "Enter MQTT username and password.";
+
+        error.style.display =
+            "block";
+
         return;
     }
 
+
     if (mqttClient) {
+
         try {
             mqttClient.end(true);
         } catch(e) {}
+
     }
 
-    setStatus("CONNECTING", false);
 
-    mqttClient = mqtt.connect(MQTT_HOST, {
+    setStatus(
+        "CONNECTING",
+        false
+    );
 
-        username: username,
-        password: password,
 
-        clientId:
-            "jk-dashboard-" +
-            Math.random().toString(16).substring(2),
+    mqttClient = mqtt.connect(
+        MQTT_HOST,
+        {
 
-        clean: true,
+            username: username,
 
-        reconnectPeriod: 5000,
+            password: password,
 
-        connectTimeout: 10000,
+            clientId:
+                "jk-dashboard-" +
+                Math.random()
+                    .toString(16)
+                    .substring(2),
 
-        keepalive: 30
-    });
+            clean: true,
 
-    mqttClient.on("connect", function() {
+            reconnectPeriod: 5000,
 
-        console.log("MQTT CONNECTED");
+            connectTimeout: 10000,
 
-        setStatus("CONNECTED", true);
+            keepalive: 30
+        }
+    );
 
-        mqttClient.subscribe(
-            MQTT_TOPIC,
-            function(err) {
 
-                if (err) {
-                    console.error(
-                        "Subscribe error:",
-                        err
+    mqttClient.on(
+        "connect",
+        function() {
+
+            console.log(
+                "MQTT CONNECTED"
+            );
+
+            setStatus(
+                "CONNECTED",
+                true
+            );
+
+
+            mqttClient.subscribe(
+                MQTT_TOPIC,
+                function(err) {
+
+                    if (err) {
+
+                        console.error(
+                            "Subscribe error:",
+                            err
+                        );
+
+                        setStatus(
+                            "SUBSCRIBE ERROR",
+                            false
+                        );
+
+                        return;
+                    }
+
+
+                    console.log(
+                        "SUBSCRIBED:",
+                        MQTT_TOPIC
                     );
 
-                    setStatus(
-                        "SUBSCRIBE ERROR",
-                        false
-                    );
 
-                    return;
+                    document.getElementById(
+                        "loginScreen"
+                    ).style.display =
+                        "none";
                 }
+            );
+
+        }
+    );
+
+
+    mqttClient.on(
+        "message",
+        function(topic, message) {
+
+            if (topic !== MQTT_TOPIC) {
+                return;
+            }
+
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        message.toString()
+                    );
+
 
                 console.log(
-                    "SUBSCRIBED:",
-                    MQTT_TOPIC
+                    "BMS DATA:",
+                    data
                 );
 
-                document.getElementById(
-                    "loginScreen"
-                ).style.display = "none";
+
+                updateDashboard(data);
+
             }
-        );
-    });
+            catch(error) {
 
-    mqttClient.on("message", function(topic, message) {
+                console.error(
+                    "JSON parse error:",
+                    error
+                );
 
-        if (topic !== MQTT_TOPIC) {
-            return;
+            }
+
         }
+    );
 
-        try {
 
-            const data =
-                JSON.parse(message.toString());
-
-            console.log("BMS DATA:", data);
-
-            updateDashboard(data);
-
-        } catch(error) {
+    mqttClient.on(
+        "error",
+        function(error) {
 
             console.error(
-                "JSON parse error:",
+                "MQTT ERROR:",
                 error
             );
+
+
+            setStatus(
+                "ERROR",
+                false
+            );
+
+
+            document.getElementById(
+                "loginError"
+            ).innerText =
+                "MQTT connection failed. Check username/password.";
+
+
+            document.getElementById(
+                "loginError"
+            ).style.display =
+                "block";
+
         }
-    });
+    );
 
-    mqttClient.on("error", function(error) {
 
-        console.error(
-            "MQTT ERROR:",
-            error
-        );
+    mqttClient.on(
+        "close",
+        function() {
 
-        setStatus(
-            "ERROR",
-            false
-        );
+            console.log(
+                "MQTT DISCONNECTED"
+            );
 
-        document.getElementById(
-            "loginError"
-        ).innerText =
-            "MQTT connection failed. Check username/password.";
 
-        document.getElementById(
-            "loginError"
-        ).style.display = "block";
-    });
+            setStatus(
+                "DISCONNECTED",
+                false
+            );
 
-    mqttClient.on("close", function() {
+        }
+    );
 
-        console.log("MQTT DISCONNECTED");
 
-        setStatus(
-            "DISCONNECTED",
-            false
-        );
-    });
+    mqttClient.on(
+        "reconnect",
+        function() {
 
-    mqttClient.on("reconnect", function() {
+            setStatus(
+                "RECONNECTING",
+                false
+            );
 
-        setStatus(
-            "RECONNECTING",
-            false
-        );
-    });
+        }
+    );
+
 }
+
+
+/* =====================================================
+   MQTT STATUS
+   ===================================================== */
 
 function setStatus(text, online) {
 
     const element =
-        document.getElementById("mqttStatus");
+        document.getElementById(
+            "mqttStatus"
+        );
 
-    element.innerText = text;
+
+    element.innerText =
+        text;
+
 
     element.className =
-        online ? "online" : "offline";
+        online
+            ? "online"
+            : "offline";
 }
 
-function numberValue(value, decimals = 2) {
+
+/* =====================================================
+   NUMBER FORMAT
+   ===================================================== */
+
+function numberValue(
+    value,
+    decimals = 2
+) {
 
     if (
         value === undefined ||
         value === null ||
         value === ""
     ) {
+
         return "---";
     }
+
 
     const number =
         Number(value);
 
+
     if (isNaN(number)) {
+
         return "---";
     }
 
-    return number.toFixed(decimals);
+
+    return number.toFixed(
+        decimals
+    );
 }
+
+
+/* =====================================================
+   TEXT FORMAT
+   ===================================================== */
 
 function textValue(value) {
 
@@ -586,149 +725,393 @@ function textValue(value) {
         value === undefined ||
         value === null
     ) {
+
         return "---";
     }
+
 
     return value;
 }
 
+
+/* =====================================================
+   PHILIPPINE DATE / TIME
+   ===================================================== */
+
+function formatPhilippineDate(timestamp) {
+
+    if (
+        timestamp === undefined ||
+        timestamp === null ||
+        timestamp === ""
+    ) {
+
+        return "---";
+    }
+
+
+    const seconds =
+        Number(timestamp);
+
+
+    if (
+        isNaN(seconds) ||
+        seconds <= 0
+    ) {
+
+        return "---";
+    }
+
+
+    /*
+       ESP32 sends Unix timestamp
+       in SECONDS.
+
+       JavaScript Date() needs
+       milliseconds.
+
+       Therefore:
+       seconds * 1000
+    */
+
+    const date =
+        new Date(
+            seconds * 1000
+        );
+
+
+    if (
+        isNaN(date.getTime())
+    ) {
+
+        return "---";
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "en-PH",
+        {
+            timeZone:
+                "Asia/Manila",
+
+            year:
+                "numeric",
+
+            month:
+                "2-digit",
+
+            day:
+                "2-digit",
+
+            hour:
+                "2-digit",
+
+            minute:
+                "2-digit",
+
+            second:
+                "2-digit",
+
+            hour12:
+                true
+        }
+    ).format(date);
+}
+
+
+/* =====================================================
+   UPDATE DASHBOARD
+   ===================================================== */
+
 function updateDashboard(data) {
 
-    document.getElementById("voltage").innerText =
-        numberValue(data.voltage, 3);
+    document.getElementById(
+        "voltage"
+    ).innerText =
+        numberValue(
+            data.voltage,
+            3
+        );
 
-    document.getElementById("current").innerText =
-        numberValue(data.current, 3);
 
-    document.getElementById("power").innerText =
-        numberValue(data.power, 2);
+    document.getElementById(
+        "current"
+    ).innerText =
+        numberValue(
+            data.current,
+            3
+        );
 
-    document.getElementById("soc").innerText =
-        numberValue(data.soc, 0);
 
-    document.getElementById("soh").innerText =
-        numberValue(data.soh, 0);
+    document.getElementById(
+        "power"
+    ).innerText =
+        numberValue(
+            data.power,
+            2
+        );
 
-    document.getElementById("remaining").innerText =
-        numberValue(data.remaining_ah, 3);
 
-    document.getElementById("full").innerText =
-        numberValue(data.full_ah, 3);
+    document.getElementById(
+        "soc"
+    ).innerText =
+        numberValue(
+            data.soc,
+            0
+        );
 
-    document.getElementById("cycles").innerText =
-        numberValue(data.cycles, 0);
 
-    document.getElementById("avgCell").innerText =
-        numberValue(data.avg_cell, 3);
+    document.getElementById(
+        "soh"
+    ).innerText =
+        numberValue(
+            data.soh,
+            0
+        );
 
-    document.getElementById("minCell").innerText =
-        numberValue(data.min_cell, 3);
 
-    document.getElementById("maxCell").innerText =
-        numberValue(data.max_cell, 3);
+    document.getElementById(
+        "remaining"
+    ).innerText =
+        numberValue(
+            data.remaining_ah,
+            3
+        );
 
-    document.getElementById("delta").innerText =
-        numberValue(data.delta_mV, 0);
 
-    document.getElementById("tempMos").innerText =
-        numberValue(data.temp_mos, 1);
+    document.getElementById(
+        "full"
+    ).innerText =
+        numberValue(
+            data.full_ah,
+            3
+        );
 
-    document.getElementById("tempBat1").innerText =
-        numberValue(data.temp_bat1, 1);
 
-    document.getElementById("tempBat2").innerText =
-        numberValue(data.temp_bat2, 1);
+    document.getElementById(
+        "cycles"
+    ).innerText =
+        numberValue(
+            data.cycles,
+            0
+        );
 
-    document.getElementById("chargeMos").innerText =
-        data.charge_mos ? "ON" : "OFF";
 
-    document.getElementById("dischargeMos").innerText =
-        data.discharge_mos ? "ON" : "OFF";
+    document.getElementById(
+        "avgCell"
+    ).innerText =
+        numberValue(
+            data.avg_cell,
+            3
+        );
 
-    document.getElementById("balanceState").innerText =
-        data.balance_state ? "ON" : "OFF";
 
-    document.getElementById("balanceCurrent").innerText =
+    document.getElementById(
+        "minCell"
+    ).innerText =
+        numberValue(
+            data.min_cell,
+            3
+        );
+
+
+    document.getElementById(
+        "maxCell"
+    ).innerText =
+        numberValue(
+            data.max_cell,
+            3
+        );
+
+
+    document.getElementById(
+        "delta"
+    ).innerText =
+        numberValue(
+            data.delta_mV,
+            0
+        );
+
+
+    document.getElementById(
+        "tempMos"
+    ).innerText =
+        numberValue(
+            data.temp_mos,
+            1
+        );
+
+
+    document.getElementById(
+        "tempBat1"
+    ).innerText =
+        numberValue(
+            data.temp_bat1,
+            1
+        );
+
+
+    document.getElementById(
+        "tempBat2"
+    ).innerText =
+        numberValue(
+            data.temp_bat2,
+            1
+        );
+
+
+    document.getElementById(
+        "chargeMos"
+    ).innerText =
+        data.charge_mos
+            ? "ON"
+            : "OFF";
+
+
+    document.getElementById(
+        "dischargeMos"
+    ).innerText =
+        data.discharge_mos
+            ? "ON"
+            : "OFF";
+
+
+    document.getElementById(
+        "balanceState"
+    ).innerText =
+        data.balance_state
+            ? "ON"
+            : "OFF";
+
+
+    document.getElementById(
+        "balanceCurrent"
+    ).innerText =
         numberValue(
             data.balance_current_mA,
             0
         );
 
-    document.getElementById("wifiRssi").innerText =
-        numberValue(data.wifi_rssi, 0);
 
-    document.getElementById("model").innerText =
-        textValue(data.model);
+    document.getElementById(
+        "wifiRssi"
+    ).innerText =
+        numberValue(
+            data.wifi_rssi,
+            0
+        );
 
-    document.getElementById("software").innerText =
-        textValue(data.software);
+
+    document.getElementById(
+        "model"
+    ).innerText =
+        textValue(
+            data.model
+        );
+
+
+    document.getElementById(
+        "software"
+    ).innerText =
+        textValue(
+            data.software
+        );
+
 
     updateCells(data);
 
-    let updateText = "---";
 
-    if (data.timestamp) {
+    /*
+       FIXED TIMESTAMP
 
-        try {
+       ESP32:
+       time_t now;
+       time(&now);
 
-            const date =
-                new Date(data.timestamp);
+       sends Unix seconds.
 
-            updateText =
-                date.toLocaleString();
+       We convert it using
+       formatPhilippineDate().
+    */
 
-        } catch(e) {
+    const updateText =
+        formatPhilippineDate(
+            data.timestamp
+        );
 
-            updateText =
-                data.timestamp;
-        }
-
-    } else {
-
-        updateText =
-            new Date().toLocaleString();
-    }
 
     document.getElementById(
         "lastUpdate"
-    ).innerText = updateText;
+    ).innerText =
+        updateText;
 }
+
+
+/* =====================================================
+   UPDATE CELLS
+   ===================================================== */
 
 function updateCells(data) {
 
     const container =
-        document.getElementById("cells");
+        document.getElementById(
+            "cells"
+        );
 
-    container.innerHTML = "";
 
-    for (let i = 1; i <= 16; i++) {
+    container.innerHTML =
+        "";
+
+
+    for (
+        let i = 1;
+        i <= 16;
+        i++
+    ) {
 
         const key =
             "cell" + i;
 
+
         const value =
             data[key];
 
-        const cell =
-            document.createElement("div");
 
-        cell.className = "cell";
+        const cell =
+            document.createElement(
+                "div"
+            );
+
+
+        cell.className =
+            "cell";
+
 
         const number =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         number.className =
             "cell-number";
 
+
         number.innerText =
             "CELL " +
-            String(i).padStart(2, "0");
+            String(i)
+                .padStart(2, "0");
+
 
         const voltage =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         voltage.className =
             "cell-voltage";
+
 
         if (
             value === undefined ||
@@ -739,18 +1122,32 @@ function updateCells(data) {
             voltage.innerText =
                 "---";
 
-        } else {
+        }
+        else {
 
             voltage.innerText =
-                Number(value).toFixed(3) +
+                Number(value)
+                    .toFixed(3) +
                 " V";
         }
 
-        cell.appendChild(number);
-        cell.appendChild(voltage);
 
-        container.appendChild(cell);
+        cell.appendChild(
+            number
+        );
+
+
+        cell.appendChild(
+            voltage
+        );
+
+
+        container.appendChild(
+            cell
+        );
+
     }
+
 }
 
 </script>
