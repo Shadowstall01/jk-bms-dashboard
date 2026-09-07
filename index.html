@@ -7,6 +7,7 @@
 <title>JK BMS Remote Monitor</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
@@ -300,6 +301,36 @@ body {
     font-weight:bold;
 }
 
+
+.history-panel{
+    background:#181e24;
+    border:1px solid #303840;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:15px;
+}
+
+.chart-buttons{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+}
+
+.chart-buttons button{
+    background:#303840;
+    color:white;
+    border:0;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.chart-buttons button.active{
+    background:#35d07f;
+    color:#101418;
+}
+
 </style>
 
 </head>
@@ -448,6 +479,24 @@ Remaining Time:
 <span id="runtime2">---</span>
 Hours
 </div>
+
+</div>
+
+
+<div class="section-title">
+    📈 Historical Monitoring
+</div>
+
+<div class="history-panel">
+
+<div class="chart-buttons">
+<button id="btnVoltage" class="active">Voltage</button>
+<button id="btnPower">Power</button>
+<button id="btnCurrent">Current</button>
+<button id="btnSOC">SOC</button>
+</div>
+
+<canvas id="historyChart"></canvas>
 
 </div>
 
@@ -1058,6 +1107,122 @@ function updateBattery(data){
  document.getElementById('runtime2').innerText =
  formatRuntime(data.remaining_time);
 }
+
+
+let historyLabels=[];
+let historyVoltage=[];
+let historyPower=[];
+let historyCurrent=[];
+let historySOC=[];
+
+let chartMode="voltage";
+let historyChart=null;
+
+function addHistory(data){
+
+    let now=new Date().toLocaleTimeString();
+
+    historyLabels.push(now);
+    historyVoltage.push(Number(data.voltage));
+    historyPower.push(Number(data.power));
+    historyCurrent.push(Number(data.current));
+    historySOC.push(Number(data.soc));
+
+    if(historyLabels.length>60){
+        historyLabels.shift();
+        historyVoltage.shift();
+        historyPower.shift();
+        historyCurrent.shift();
+        historySOC.shift();
+    }
+
+    updateHistoryChart();
+}
+
+
+function updateHistoryChart(){
+
+    let values=historyVoltage;
+    let label="Voltage (V)";
+
+    if(chartMode==="power"){
+        values=historyPower;
+        label="Power (W)";
+    }
+
+    if(chartMode==="current"){
+        values=historyCurrent;
+        label="Current (A)";
+    }
+
+    if(chartMode==="soc"){
+        values=historySOC;
+        label="SOC (%)";
+    }
+
+    if(!historyChart){
+        historyChart=new Chart(
+            document.getElementById("historyChart"),
+            {
+                type:"line",
+                data:{
+                    labels:historyLabels,
+                    datasets:[{
+                        label:label,
+                        data:values,
+                        borderColor:"#35d07f",
+                        backgroundColor:"rgba(53,208,127,0.15)",
+                        tension:.3,
+                        fill:true
+                    }]
+                },
+                options:{
+                    responsive:true,
+                    plugins:{
+                        legend:{
+                            labels:{color:"#ffffff"}
+                        }
+                    },
+                    scales:{
+                        x:{
+                            ticks:{color:"#9aa6b2"}
+                        },
+                        y:{
+                            ticks:{color:"#9aa6b2"}
+                        }
+                    }
+                }
+            }
+        );
+    }
+    else{
+        historyChart.data.labels=historyLabels;
+        historyChart.data.datasets[0].label=label;
+        historyChart.data.datasets[0].data=values;
+        historyChart.update();
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+    document.getElementById("btnVoltage").onclick=()=>{
+        chartMode="voltage"; updateHistoryChart();
+    };
+
+    document.getElementById("btnPower").onclick=()=>{
+        chartMode="power"; updateHistoryChart();
+    };
+
+    document.getElementById("btnCurrent").onclick=()=>{
+        chartMode="current"; updateHistoryChart();
+    };
+
+    document.getElementById("btnSOC").onclick=()=>{
+        chartMode="soc"; updateHistoryChart();
+    };
+
+});
 
 function updateDashboard(data) {
  updateBattery(data);
