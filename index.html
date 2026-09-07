@@ -7,6 +7,7 @@
 <title>JK BMS Remote Monitor</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
 * {
@@ -225,6 +226,36 @@ body {
  background:#ff5c5c !important;
 }
 
+
+.card .label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.card-icon{
+    color:#35d07f;
+    font-size:15px;
+}
+
+.battery-status{
+    font-size:17px;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+.status-charge{
+    color:#35d07f;
+}
+
+.status-discharge{
+    color:#3498db;
+}
+
+.status-idle{
+    color:#9aa6b2;
+}
+
 </style>
 
 </head>
@@ -300,49 +331,49 @@ body {
 <div class="cards">
 
     <div class="card">
-        <div class="label">Pack Voltage</div>
+        <div class="label"><i class="fa-solid fa-battery-half card-icon"></i>Pack Voltage</div>
         <div class="value" id="voltage">---</div>
         <span class="unit">V</span>
     </div>
 
     <div class="card">
-        <div class="label">Current</div>
+        <div class="label"><i class="fa-solid fa-bolt card-icon"></i>Current</div>
         <div class="value" id="current">---</div>
         <span class="unit">A</span>
     </div>
 
     <div class="card">
-        <div class="label">Power</div>
+        <div class="label"><i class="fa-solid fa-gauge-high card-icon"></i>Power</div>
         <div class="value" id="power">---</div>
         <span class="unit">W</span>
     </div>
 
     <div class="card">
-        <div class="label">SOH</div>
+        <div class="label"><i class="fa-solid fa-heart-pulse card-icon"></i>SOH</div>
         <div class="value" id="soh">---</div>
         <span class="unit">%</span>
     </div>
 
     <div class="card">
-        <div class="label">Remaining</div>
+        <div class="label"><i class="fa-solid fa-box-open card-icon"></i>Remaining</div>
         <div class="value" id="remaining">---</div>
         <span class="unit">Ah</span>
     </div>
 
     <div class="card">
-        <div class="label">Full Capacity</div>
+        <div class="label"><i class="fa-solid fa-battery-full card-icon"></i>Full Capacity</div>
         <div class="value" id="full">---</div>
         <span class="unit">Ah</span>
     </div>
 
     <div class="card">
-        <div class="label">Remaining Time</div>
+        <div class="label"><i class="fa-solid fa-clock card-icon"></i>Remaining Time</div>
         <div class="value" id="runtime">---</div>
         <span class="unit">Hours</span>
     </div>
 
     <div class="card">
-        <div class="label">Cycles</div>
+        <div class="label"><i class="fa-solid fa-rotate card-icon"></i>Cycles</div>
         <div class="value" id="cycles">---</div>
     </div>
 
@@ -383,25 +414,25 @@ Hours
 <div class="cards">
 
     <div class="card">
-        <div class="label">Average Cell</div>
+        <div class="label"><i class="fa-solid fa-chart-line card-icon"></i>Average Cell</div>
         <div class="value" id="avgCell">---</div>
         <span class="unit">V</span>
     </div>
 
     <div class="card">
-        <div class="label">Minimum Cell</div>
+        <div class="label"><i class="fa-solid fa-arrow-down card-icon"></i>Minimum Cell</div>
         <div class="value" id="minCell">---</div>
         <span class="unit">V</span>
     </div>
 
     <div class="card">
-        <div class="label">Maximum Cell</div>
+        <div class="label"><i class="fa-solid fa-arrow-up card-icon"></i>Maximum Cell</div>
         <div class="value" id="maxCell">---</div>
         <span class="unit">V</span>
     </div>
 
     <div class="card">
-        <div class="label">Cell Delta</div>
+        <div class="label"><i class="fa-solid fa-scale-balanced card-icon"></i>Cell Delta</div>
         <div class="value" id="delta">---</div>
         <span class="unit">mV</span>
     </div>
@@ -418,19 +449,19 @@ Hours
 <div class="cards">
 
     <div class="card">
-        <div class="label">MOS Temperature</div>
+        <div class="label"><i class="fa-solid fa-temperature-half card-icon"></i>MOS Temperature</div>
         <div class="value" id="tempMos">---</div>
         <span class="unit">°C</span>
     </div>
 
     <div class="card">
-        <div class="label">BAT1 Temperature</div>
+        <div class="label"><i class="fa-solid fa-temperature-half card-icon"></i>BAT1 Temperature</div>
         <div class="value" id="tempBat1">---</div>
         <span class="unit">°C</span>
     </div>
 
     <div class="card">
-        <div class="label">BAT2 Temperature</div>
+        <div class="label"><i class="fa-solid fa-temperature-half card-icon"></i>BAT2 Temperature</div>
         <div class="value" id="tempBat2">---</div>
         <span class="unit">°C</span>
     </div>
@@ -445,22 +476,22 @@ Hours
 <div class="cards">
 
     <div class="card">
-        <div class="label">Charge MOS</div>
+        <div class="label"><i class="fa-solid fa-plug card-icon"></i>Charge MOS</div>
         <div class="value" id="chargeMos">---</div>
     </div>
 
     <div class="card">
-        <div class="label">Discharge MOS</div>
+        <div class="label"><i class="fa-solid fa-power-off card-icon"></i>Discharge MOS</div>
         <div class="value" id="dischargeMos">---</div>
     </div>
 
     <div class="card">
-        <div class="label">Balancing</div>
+        <div class="label"><i class="fa-solid fa-scale-balanced card-icon"></i>Balancing</div>
         <div class="value" id="balanceState">---</div>
     </div>
 
     <div class="card">
-        <div class="label">Balance Current</div>
+        <div class="label"><i class="fa-solid fa-gauge card-icon"></i>Balance Current</div>
         <div class="value" id="balanceCurrent">---</div>
         <span class="unit">mA</span>
     </div>
@@ -475,20 +506,20 @@ Hours
 <div class="cards">
 
     <div class="card">
-        <div class="label">WiFi RSSI</div>
+        <div class="label"><i class="fa-solid fa-wifi card-icon"></i>WiFi RSSI</div>
         <div class="value" id="wifiRssi">---</div>
         <span class="unit">dBm</span>
     </div>
 
     <div class="card">
-        <div class="label">BMS Model</div>
+        <div class="label"><i class="fa-solid fa-microchip card-icon"></i>BMS Model</div>
         <div class="value" id="model" style="font-size:17px;">
             ---
         </div>
     </div>
 
     <div class="card">
-        <div class="label">Software</div>
+        <div class="label"><i class="fa-solid fa-code card-icon"></i>Software</div>
         <div class="value" id="software" style="font-size:20px;">
             ---
         </div>
