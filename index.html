@@ -1147,219 +1147,269 @@ function updateBattery(data){
 
 
 
+
 let historyLabels=[];
 let historyVoltage=[];
 let historyPower=[];
 let historyCurrent=[];
 let historySOC=[];
+let historyMode=[];
 
 let historyChart=null;
+
+const HISTORY_KEY="JK_BMS_GRAPH_HISTORY";
+const MAX_HISTORY=360; // 1 hour at 10 sec interval
+
+
+function saveHistory(){
+
+    localStorage.setItem(
+        HISTORY_KEY,
+        JSON.stringify({
+            labels:historyLabels,
+            voltage:historyVoltage,
+            power:historyPower,
+            current:historyCurrent,
+            soc:historySOC,
+            mode:historyMode
+        })
+    );
+}
+
+
+function loadHistory(){
+
+    let saved=localStorage.getItem(HISTORY_KEY);
+
+    if(!saved) return;
+
+    try{
+
+        let data=JSON.parse(saved);
+
+        historyLabels=data.labels || [];
+        historyVoltage=data.voltage || [];
+        historyPower=data.power || [];
+        historyCurrent=data.current || [];
+        historySOC=data.soc || [];
+        historyMode=data.mode || [];
+
+    }
+    catch(e){
+        console.log("History restore failed");
+    }
+}
+
+
+loadHistory();
+
+
 
 function addHistory(data){
 
     let now=new Date().toLocaleTimeString();
 
-    historyLabels.push(now);
+    let current=Number(data.current ?? data.pack_current ?? 0);
 
+    historyLabels.push(now);
     historyVoltage.push(Number(data.voltage ?? data.pack_voltage ?? 0));
     historyPower.push(Number(data.power ?? data.pack_power ?? 0));
-    historyCurrent.push(Number(data.current ?? data.pack_current ?? 0));
+    historyCurrent.push(current);
     historySOC.push(Number(data.soc ?? 0));
 
+    if(current>0.5){
+        historyMode.push("CHARGING");
+    }
+    else if(current<-0.5){
+        historyMode.push("DISCHARGING");
+    }
+    else{
+        historyMode.push("IDLE");
+    }
 
-    if(historyLabels.length>60){
+
+    while(historyLabels.length>MAX_HISTORY){
 
         historyLabels.shift();
         historyVoltage.shift();
         historyPower.shift();
         historyCurrent.shift();
         historySOC.shift();
+        historyMode.shift();
 
     }
 
+    saveHistory();
     updateHistoryChart();
 
 }
 
 
 
-
 function updateHistoryChart(){
+
 
     if(!historyChart){
 
-        historyChart = new Chart(
+        historyChart=new Chart(
             document.getElementById("historyChart"),
             {
-                type:"line",
 
-                data:{
-                    labels:historyLabels,
+            type:"line",
 
-                    datasets:[
-                        {
-                            label:"Voltage (V)",
-                            data:historyVoltage,
-                            borderColor:"#35d07f",
-                            backgroundColor:"rgba(53,208,127,0.10)",
-                            tension:0.35,
-                            cubicInterpolationMode:"monotone",
-                            borderWidth:2,
-                            pointRadius:0,
-                            pointHoverRadius:4,
-                            fill:false,
-                            yAxisID:"y"
-                        },
+            data:{
 
-                        {
-                            label:"Current (A)",
-                            data:historyCurrent,
-                            borderColor:"#3aa6ff",
-                            backgroundColor:"rgba(58,166,255,0.10)",
-                            tension:0.35,
-                            cubicInterpolationMode:"monotone",
-                            borderWidth:2,
-                            pointRadius:0,
-                            pointHoverRadius:4,
-                            fill:false,
-                            yAxisID:"y1"
-                        },
+                labels:historyLabels,
 
-                        {
-                            label:"Power (W)",
-                            data:historyPower,
-                            borderColor:"#f2c94c",
-                            backgroundColor:"rgba(242,201,76,0.12)",
-                            tension:0.35,
-                            cubicInterpolationMode:"monotone",
-                            borderWidth:2,
-                            pointRadius:0,
-                            pointHoverRadius:4,
-                            fill:false,
-                            yAxisID:"y1"
-                        },
+                datasets:[
 
-                        {
-                            label:"SOC (%)",
-                            data:historySOC,
-                            borderColor:"#ff9f43",
-                            backgroundColor:"rgba(255,159,67,0.10)",
-                            tension:0.35,
-                            cubicInterpolationMode:"monotone",
-                            borderWidth:2,
-                            pointRadius:0,
-                            pointHoverRadius:4,
-                            fill:false,
-                            yAxisID:"y1"
-                        }
-                    ]
+                {
+                    label:"Voltage (V)",
+                    data:historyVoltage,
+                    borderColor:"#35d07f",
+                    tension:.45,
+                    cubicInterpolationMode:"monotone",
+                    pointRadius:0,
+                    yAxisID:"y"
                 },
 
-                options:{
-                    responsive:true,
-                    maintainAspectRatio:false,
-                    animation:false,
+                {
+                    label:"Current (A)",
+                    data:historyCurrent,
+                    borderColor:"#3498db",
+                    tension:.45,
+                    cubicInterpolationMode:"monotone",
+                    pointRadius:0,
+                    yAxisID:"y1"
+                },
 
-                    interaction:{
-                        mode:"index",
-                        intersect:false
-                    },
+                {
+                    label:"Power (W)",
+                    data:historyPower,
+                    borderColor:"#f2c94c",
+                    tension:.45,
+                    cubicInterpolationMode:"monotone",
+                    pointRadius:0,
+                    yAxisID:"y1"
+                },
 
-                    plugins:{
-                        legend:{
-                            labels:{
-                                color:"#ffffff",
-                                boxWidth:40,
-                                usePointStyle:false
-                            }
-                        },
-                        tooltip:{
-                            enabled:true,
-                            backgroundColor:"#111827",
-                            titleColor:"#ffffff",
-                            bodyColor:"#ffffff",
-                            borderColor:"#303840",
-                            borderWidth:1
-                        }
-                    },
+                {
+                    label:"SOC (%)",
+                    data:historySOC,
+                    borderColor:"#ff9f43",
+                    tension:.45,
+                    cubicInterpolationMode:"monotone",
+                    pointRadius:0,
+                    yAxisID:"y1"
+                }
 
-                    elements:{
-                        line:{
-                            capBezierPoints:true
-                        }
-                    },
+                ]
 
-                    scales:{
-                        x:{
-                            ticks:{
-                                color:"#9aa6b2",
-                                maxTicksLimit:8
-                            },
-                            grid:{
-                                color:"rgba(255,255,255,0.04)"
-                            }
-                        },
+            },
 
-                        y:{
-                            position:"left",
-                            ticks:{
-                                color:"#9aa6b2"
-                            },
-                            grid:{
-                                color:"rgba(255,255,255,0.05)"
-                            }
-                        },
 
-                        y1:{
-                            position:"right",
-                            ticks:{
-                                color:"#9aa6b2"
-                            },
-                            grid:{
-                                drawOnChartArea:false
-                            }
+            options:{
+
+                responsive:true,
+                maintainAspectRatio:false,
+                animation:false,
+
+                interaction:{
+                    mode:"index",
+                    intersect:false
+                },
+
+
+                plugins:{
+
+                    legend:{
+                        labels:{
+                            color:"#ffffff"
                         }
                     }
+
+                },
+
+
+                scales:{
+
+                    x:{
+                        ticks:{
+                            color:"#9aa6b2",
+                            maxTicksLimit:10
+                        }
+                    },
+
+
+                    y:{
+
+                        position:"left",
+
+                        title:{
+                            display:true,
+                            text:"Voltage (V)",
+                            color:"#35d07f"
+                        },
+
+                        ticks:{
+                            color:"#9aa6b2"
+                        }
+
+                    },
+
+
+                    y1:{
+
+                        position:"right",
+
+                        title:{
+                            display:true,
+                            text:"Power / Current / SOC",
+                            color:"#3498db"
+                        },
+
+                        ticks:{
+                            color:"#9aa6b2"
+                        },
+
+                        grid:{
+                            drawOnChartArea:false
+                        }
+
+                    }
+
                 }
+
+            }
+
             }
         );
 
     }
     else{
 
-        historyChart.data.labels = historyLabels;
+        historyChart.data.labels=historyLabels;
 
-        historyChart.data.datasets[0].data = historyVoltage;
-        historyChart.data.datasets[1].data = historyCurrent;
-        historyChart.data.datasets[2].data = historyPower;
-        historyChart.data.datasets[3].data = historySOC;
+        historyChart.data.datasets[0].data=historyVoltage;
+        historyChart.data.datasets[1].data=historyCurrent;
+        historyChart.data.datasets[2].data=historyPower;
+        historyChart.data.datasets[3].data=historySOC;
 
-        // Auto scale graph based on actual live values
-        const voltageValues = historyVoltage.filter(v => !isNaN(v));
-        const otherValues = [
-            ...historyCurrent,
-            ...historyPower,
-            ...historySOC
-        ].filter(v => !isNaN(v));
 
-        if(voltageValues.length){
-            const minV = Math.min(...voltageValues);
-            const maxV = Math.max(...voltageValues);
-            historyChart.options.scales.y.min = Math.floor(minV - 0.5);
-            historyChart.options.scales.y.max = Math.ceil(maxV + 0.5);
+        let v=historyVoltage.filter(x=>!isNaN(x));
+
+        if(v.length){
+
+            historyChart.options.scales.y.min=Math.min(...v)-0.1;
+            historyChart.options.scales.y.max=Math.max(...v)+0.1;
+
         }
 
-        if(otherValues.length){
-            const minO = Math.min(...otherValues);
-            const maxO = Math.max(...otherValues);
-            const padding = Math.max((maxO-minO)*0.15, 10);
-            historyChart.options.scales.y1.min = Math.floor(minO-padding);
-            historyChart.options.scales.y1.max = Math.ceil(maxO+padding);
-        }
 
         historyChart.update("none");
 
     }
+
 
 }
 
