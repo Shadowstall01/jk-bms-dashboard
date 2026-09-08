@@ -477,9 +477,9 @@ Battery Level
 
 <div class="history-panel">
 
-<div style="color:#9aa6b2;font-size:13px;margin-bottom:10px;">Live Dashboard: Voltage + Current + Power + SOC | Auto Update Every 10 Seconds</div>
+<div style="color:#9aa6b2;font-size:13px;margin-bottom:10px;">Live Dashboard: Voltage + Current + Power + SOC | Auto Update Every 10 Seconds | 1 Hour Live History</div>
 
-<div style="height:420px;"><canvas id="historyChart"></canvas></div>
+<div style="height:520px;"><canvas id="historyChart"></canvas></div>
 
 </div>
 
@@ -1167,7 +1167,7 @@ function addHistory(data){
     historySOC.push(Number(data.soc ?? 0));
 
 
-    if(historyLabels.length>60){
+    if(historyLabels.length>360){
 
         historyLabels.shift();
         historyVoltage.shift();
@@ -1187,7 +1187,7 @@ function updateHistoryChart(){
 
     if(!historyChart){
 
-        historyChart=new Chart(
+        historyChart = new Chart(
             document.getElementById("historyChart"),
             {
                 type:"line",
@@ -1196,45 +1196,49 @@ function updateHistoryChart(){
                     labels:historyLabels,
 
                     datasets:[
-
-                    {
-                        label:"Voltage (V)",
-                        data:historyVoltage,
-                        tension:.3,
-                        fill:false
-                    },
-
-                    {
-                        label:"Power (W)",
-                        data:historyPower,
-                        tension:.3,
-                        fill:false
-                    },
-
-                    {
-                        label:"Current (A)",
-                        data:historyCurrent,
-                        tension:.3,
-                        fill:false
-                    },
-
-                    {
-                        label:"SOC (%)",
-                        data:historySOC,
-                        tension:.3,
-                        fill:false
-                    }
-
+                        {
+                            label:"Voltage (V)",
+                            data:historyVoltage,
+                            tension:0,
+                            borderWidth:2,
+                            yAxisID:"voltage"
+                        },
+                        {
+                            label:"Current (A)",
+                            data:historyCurrent,
+                            tension:0,
+                            borderWidth:2,
+                            yAxisID:"current"
+                        },
+                        {
+                            label:"Power (W)",
+                            data:historyPower,
+                            tension:0,
+                            borderWidth:2,
+                            yAxisID:"power"
+                        },
+                        {
+                            label:"SOC (%)",
+                            data:historySOC,
+                            tension:0,
+                            borderWidth:2,
+                            yAxisID:"soc"
+                        }
                     ]
-
                 },
 
-
                 options:{
-
                     responsive:true,
+                    maintainAspectRatio:false,
 
                     animation:false,
+
+                    parsing:false,
+
+                    interaction:{
+                        mode:"index",
+                        intersect:false
+                    },
 
                     plugins:{
                         legend:{
@@ -1245,37 +1249,57 @@ function updateHistoryChart(){
                     },
 
                     scales:{
+
                         x:{
+                            ticks:{
+                                color:"#9aa6b2",
+                                maxTicksLimit:12
+                            }
+                        },
+
+                        voltage:{
+                            position:"left",
+                            suggestedMin:0,
+                            suggestedMax:60,
                             ticks:{
                                 color:"#9aa6b2"
                             }
                         },
 
-                        y:{
+                        current:{
+                            position:"right",
+                            suggestedMin:-100,
+                            suggestedMax:100,
                             ticks:{
                                 color:"#9aa6b2"
                             }
+                        },
+
+                        power:{
+                            display:false
+                        },
+
+                        soc:{
+                            display:false
                         }
+
                     }
-
                 }
-
             }
-
         );
 
     }
 
     else{
 
-        historyChart.data.labels=historyLabels;
+        historyChart.data.labels = historyLabels;
 
-        historyChart.data.datasets[0].data=historyVoltage;
-        historyChart.data.datasets[1].data=historyPower;
-        historyChart.data.datasets[2].data=historyCurrent;
-        historyChart.data.datasets[3].data=historySOC;
+        historyChart.data.datasets[0].data = historyVoltage;
+        historyChart.data.datasets[1].data = historyCurrent;
+        historyChart.data.datasets[2].data = historyPower;
+        historyChart.data.datasets[3].data = historySOC;
 
-        historyChart.update();
+        historyChart.update("none");
 
     }
 
