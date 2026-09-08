@@ -1,137 +1,1762 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JK BMS V20 PRO Monitor</title>
+<title>JK BMS Remote Monitor</title>
+
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
 <style>
-body{margin:0;background:#101418;color:white;font-family:Arial}
-.container{max-width:1200px;margin:auto;padding:20px}
-.card,.panel{background:#181e24;border:1px solid #303840;border-radius:12px;padding:16px;margin-bottom:15px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.value{font-size:28px;font-weight:bold;margin-top:8px}
-.label{color:#9aa6b2}
-button{background:#35d07f;border:0;padding:10px;border-radius:8px;cursor:pointer}
-canvas{height:460px!important}
-.good{color:#35d07f}.warn{color:#f2c94c}.bad{color:#ff5c5c}
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #101418;
+    color: #ffffff;
+}
+
+.header {
+    background: #181e24;
+    padding: 18px 20px;
+    border-bottom: 1px solid #303840;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.status {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.online {
+    color: #35d07f;
+}
+
+.offline {
+    color: #ff5c5c;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.section-title {
+    margin-top: 25px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    color: #b9c4ce;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.card {
+    background: #181e24;
+    border: 1px solid #303840;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.label {
+    color: #8e9aa5;
+    font-size: 13px;
+}
+
+.value {
+    margin-top: 7px;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.unit {
+    font-size: 14px;
+    color: #9aa6b2;
+}
+
+.cells {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.cell {
+    background: #181e24;
+    border: 1px solid #303840;
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+
+.cell-number {
+    color: #8e9aa5;
+    font-size: 13px;
+}
+
+.cell-voltage {
+    margin-top: 5px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.footer {
+    margin-top: 30px;
+    padding: 15px;
+    text-align: center;
+    color: #697580;
+    font-size: 12px;
+}
+
+.login {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.login-box {
+    width: min(420px, 90%);
+    background: #181e24;
+    border: 1px solid #303840;
+    border-radius: 14px;
+    padding: 25px;
+}
+
+.login-box h2 {
+    margin-top: 0;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 13px;
+    margin-top: 10px;
+    background: #101418;
+    border: 1px solid #3a444e;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 13px;
+    margin-top: 15px;
+    border: 0;
+    border-radius: 8px;
+    background: #35d07f;
+    color: #08100c;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.error {
+    color: #ff6868;
+    margin-top: 10px;
+    font-size: 13px;
+    display: none;
+}
+
+.battery-container{
+ background:#1f2937;
+ border-radius:14px;
+ padding:18px;
+ margin-top:20px;
+ width:100%;
+}
+.battery-title{
+ color:#9ca3af;
+ font-size:13px;
+}
+.battery-bar{
+ width:100%;
+ height:38px;
+ background:#374151;
+ border-radius:20px;
+ overflow:hidden;
+ margin-top:12px;
+}
+.battery-fill{
+ height:100%;
+ width:0%;
+ transition:.5s;
+ background:#35d07f;
+}
+.battery-percent{
+ font-size:30px;
+ font-weight:bold;
+ margin-top:10px;
+}
+.battery-status{
+ font-size:16px;
+ margin-top:5px;
+}
+
+.battery-status{
+ font-size:16px;
+ font-weight:bold;
+ margin-top:8px;
+}
+
+.battery-fill.charging{
+ background:#35d07f !important;
+}
+
+.battery-fill.discharging{
+ background:#3498db !important;
+}
+
+.battery-fill.low{
+ background:#ff5c5c !important;
+}
+
+
+.card .label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.card-icon{
+    color:#35d07f;
+    font-size:15px;
+}
+
+.battery-status{
+    font-size:17px;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+.status-charge{
+    color:#35d07f;
+}
+
+.status-discharge{
+    color:#3498db;
+}
+
+.status-idle{
+    color:#9aa6b2;
+}
+
+
+.cell.good { border-color:#35d07f; }
+.cell.warn { border-color:#f2c94c; }
+.cell.bad { border-color:#ff5c5c; }
+.cell-status-icon { margin-right:5px; }
+
+.cell-health-summary{
+    background:#181e24;
+    border:1px solid #303840;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:12px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;
+}
+
+.health-item{
+    background:#101418;
+    border-radius:10px;
+    padding:12px;
+}
+
+.health-label{
+    color:#8e9aa5;
+    font-size:12px;
+}
+
+.health-value{
+    font-size:20px;
+    font-weight:bold;
+    margin-top:5px;
+}
+
+.health-good{color:#35d07f;}
+.health-warn{color:#f2c94c;}
+.health-bad{color:#ff5c5c;}
+
+.cell-status{
+    font-size:12px;
+    margin-top:5px;
+    font-weight:bold;
+}
+
+
+.history-panel{
+    background:#181e24;
+    border:1px solid #303840;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:15px;
+}
+
+.chart-buttons{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+}
+
+.chart-buttons button{
+    background:#303840;
+    color:white;
+    border:0;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.chart-buttons button.active{
+    background:#35d07f;
+    color:#101418;
+}
+
 </style>
+
 </head>
+
 <body>
+
+<div class="login" id="loginScreen">
+
+```
+<div class="login-box">
+
+    <h2>JK BMS Remote Monitor</h2>
+
+    <div style="color:#9aa6b2;font-size:13px;">
+        Enter your HiveMQ dashboard MQTT credentials.
+    </div>
+
+    <input
+        id="mqttUser"
+        type="text"
+        placeholder="MQTT Username"
+        value="nejs23"
+    >
+
+    <input
+        id="mqttPassword"
+        type="password"
+        placeholder="MQTT Password"
+    >
+
+    <button onclick="connectMQTT()">
+        CONNECT
+    </button>
+
+    <div class="error" id="loginError">
+        MQTT connection failed.
+    </div>
+
+</div>
+```
+
+</div>
+
+<div class="header">
+
+```
+<h1>JK BMS V19 Monitor - 8S LiFePO4</h1>
+
+<div class="status">
+    MQTT:
+    <span id="mqttStatus" class="offline">
+        DISCONNECTED
+    </span>
+</div>
+
+<div class="status">
+    Last BMS update:
+    <span id="lastUpdate">
+        ---
+    </span>
+</div>
+```
+
+</div>
+
 <div class="container">
 
-<h2>🔋 JK BMS V20 PRO Remote Monitor</h2>
+```
+<div class="section-title">
+    Battery
+</div>
 
-<div class="panel">
-<h3>Live Battery</h3>
 <div class="cards">
-<div class="card"><div class="label">Voltage</div><div class="value" id="voltage">---</div></div>
-<div class="card"><div class="label">Current</div><div class="value" id="current">---</div></div>
-<div class="card"><div class="label">Power</div><div class="value" id="power">---</div></div>
-<div class="card"><div class="label">SOC</div><div class="value" id="soc">---</div></div>
-</div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-battery-half card-icon"></i>Pack Voltage</div>
+        <div class="value" id="voltage">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-bolt card-icon"></i>Current</div>
+        <div class="value" id="current">---</div>
+        <span class="unit">A</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-gauge-high card-icon"></i>Power</div>
+        <div class="value" id="power">---</div>
+        <span class="unit">W</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-heart-pulse card-icon"></i>SOH</div>
+        <div class="value" id="soh">---</div>
+        <span class="unit">%</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-box-open card-icon"></i>Remaining</div>
+        <div class="value" id="remaining">---</div>
+        <span class="unit">Ah</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-battery-full card-icon"></i>Full Capacity</div>
+        <div class="value" id="full">---</div>
+        <span class="unit">Ah</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-rotate card-icon"></i>Cycles</div>
+        <div class="value" id="cycles">---</div>
+    </div>
+
 </div>
 
-<div class="panel">
-<h3>📈 PRO Historical Monitoring</h3>
-<canvas id="chart"></canvas>
+
+
+<div class="battery-container">
+
+<div class="battery-title">
+Battery Level
 </div>
 
-<div class="panel">
-<h3>Statistics</h3>
-<div id="stats">Waiting data...</div>
+<div class="battery-bar">
+<div id="batteryFill" class="battery-fill"></div>
 </div>
+
+<div id="batteryPercent" class="battery-percent">
+---
+</div>
+
+<div id="batteryStatus" class="battery-status">
+---
+</div>
+
+</div>
+
+
+<div class="section-title">
+    📈 Historical Monitoring
+</div>
+
+<div class="history-panel">
+
+<div style="color:#9aa6b2;font-size:13px;margin-bottom:10px;">Live Dashboard: Smooth Curve Monitoring | Voltage + Current + Power + SOC | Auto Update Every 10 Seconds</div>
+
+<div style="height:520px;"><canvas id="historyChart"></canvas></div>
+
+</div>
+
+<div class="section-title">
+    Cells
+</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-chart-line card-icon"></i>Average Cell</div>
+        <div class="value" id="avgCell">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-arrow-down card-icon"></i>Minimum Cell</div>
+        <div class="value" id="minCell">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-arrow-up card-icon"></i>Maximum Cell</div>
+        <div class="value" id="maxCell">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-scale-balanced card-icon"></i>Cell Delta</div>
+        <div class="value" id="delta">---</div>
+        <span class="unit">mV</span>
+    </div>
+
+</div>
+
+
+<div class="cell-health-summary">
+
+<div class="health-item">
+<div class="health-label">🧬 Balance Status</div>
+<div class="health-value" id="cellHealthStatus">---</div>
+</div>
+
+<div class="health-item">
+<div class="health-label">⚖ Delta</div>
+<div class="health-value" id="cellHealthDelta">---</div>
+</div>
+
+<div class="health-item">
+<div class="health-label">⬆ Highest Cell</div>
+<div class="health-value" id="cellHealthMax">---</div>
+</div>
+
+<div class="health-item">
+<div class="health-label">⬇ Lowest Cell</div>
+<div class="health-value" id="cellHealthMin">---</div>
+</div>
+
+</div>
+
+<div class="cells" id="cells"></div>
+
+
+<div class="section-title">
+    Temperature
+</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-temperature-half card-icon"></i>MOS Temperature</div>
+        <div class="value" id="tempMos">---</div>
+        <span class="unit">°C</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-temperature-half card-icon"></i>BAT1 Temperature</div>
+        <div class="value" id="tempBat1">---</div>
+        <span class="unit">°C</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-temperature-half card-icon"></i>BAT2 Temperature</div>
+        <div class="value" id="tempBat2">---</div>
+        <span class="unit">°C</span>
+    </div>
+
+</div>
+
+
+<div class="section-title">
+    Protection / MOS
+</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-plug card-icon"></i>Charge MOS</div>
+        <div class="value" id="chargeMos">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-power-off card-icon"></i>Discharge MOS</div>
+        <div class="value" id="dischargeMos">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-scale-balanced card-icon"></i>Balancing</div>
+        <div class="value" id="balanceState">---</div>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-gauge card-icon"></i>Balance Current</div>
+        <div class="value" id="balanceCurrent">---</div>
+        <span class="unit">mA</span>
+    </div>
+
+</div>
+
+
+<div class="section-title">
+    System
+</div>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-wifi card-icon"></i>WiFi RSSI</div>
+        <div class="value" id="wifiRssi">---</div>
+        <span class="unit">dBm</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-microchip card-icon"></i>BMS Model</div>
+        <div class="value" id="model" style="font-size:17px;">
+            ---
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-code card-icon"></i>Software</div>
+        <div class="value" id="software" style="font-size:20px;">
+            ---
+        </div>
+    </div>
+
+</div>
+
+
+<div class="footer">
+    JK BMS V19 Remote Monitor - 8S
+</div>
+```
 
 </div>
 
 <script>
-const HOST="wss://4c3d779ff55d416f8193eaa976fce2c4.s1.eu.hivemq.cloud:8884/mqtt";
-const TOPIC="jk-bms/data";
 
-let client=mqtt.connect(HOST,{
-username:"nejs23",
-password:"",
-clientId:"jk-pro-"+Math.random()
-});
+const MQTT_HOST =
+    "wss://4c3d779ff55d416f8193eaa976fce2c4.s1.eu.hivemq.cloud:8884/mqtt";
 
-let labels=[],voltage=[],current=[],power=[],soc=[];
-let chart;
+const MQTT_TOPIC =
+    "jk-bms/data";
 
-client.on("connect",()=>{
-console.log("connected");
-client.subscribe(TOPIC);
-});
+let mqttClient = null;
 
-client.on("message",(t,msg)=>{
-let d=JSON.parse(msg);
-update(d);
-graph(d);
-});
 
-function update(d){
-let v=Number(d.voltage??d.pack_voltage??0);
-let c=Number(d.current??d.pack_current??0);
-let p=Number(d.power??d.pack_power??v*c);
-let s=Number(d.soc??0);
+/* =====================================================
+   MQTT CONNECT
+   ===================================================== */
 
-document.getElementById("voltage").innerHTML=v.toFixed(2)+" V";
-document.getElementById("current").innerHTML=c.toFixed(2)+" A";
-document.getElementById("power").innerHTML=p.toFixed(0)+" W";
-document.getElementById("soc").innerHTML=s.toFixed(0)+" %";
+function connectMQTT() {
 
-document.getElementById("stats").innerHTML=
-"Voltage: "+v.toFixed(2)+"V<br>"+
-"Current: "+c.toFixed(2)+"A<br>"+
-"Power: "+p.toFixed(0)+"W<br>"+
-"SOC: "+s.toFixed(0)+"%";
+    const username =
+        document.getElementById("mqttUser").value.trim();
+
+    const password =
+        document.getElementById("mqttPassword").value;
+
+    const error =
+        document.getElementById("loginError");
+
+    error.style.display = "none";
+
+    if (!username || !password) {
+
+        error.innerText =
+            "Enter MQTT username and password.";
+
+        error.style.display =
+            "block";
+
+        return;
+    }
+
+
+    if (mqttClient) {
+
+        try {
+            mqttClient.end(true);
+        } catch(e) {}
+
+    }
+
+
+    setStatus(
+        "CONNECTING",
+        false
+    );
+
+
+    mqttClient = mqtt.connect(
+        MQTT_HOST,
+        {
+
+            username: username,
+
+            password: password,
+
+            clientId:
+                "jk-dashboard-" +
+                Math.random()
+                    .toString(16)
+                    .substring(2),
+
+            clean: true,
+
+            reconnectPeriod: 5000,
+
+            connectTimeout: 10000,
+
+            keepalive: 30
+        }
+    );
+
+
+    mqttClient.on(
+        "connect",
+        function() {
+
+            console.log(
+                "MQTT CONNECTED"
+            );
+
+            setStatus(
+                "CONNECTED",
+                true
+            );
+
+
+            mqttClient.subscribe(
+                MQTT_TOPIC,
+                function(err) {
+
+                    if (err) {
+
+                        console.error(
+                            "Subscribe error:",
+                            err
+                        );
+
+                        setStatus(
+                            "SUBSCRIBE ERROR",
+                            false
+                        );
+
+                        return;
+                    }
+
+
+                    console.log(
+                        "SUBSCRIBED:",
+                        MQTT_TOPIC
+                    );
+
+
+                    document.getElementById(
+                        "loginScreen"
+                    ).style.display =
+                        "none";
+                }
+            );
+
+        }
+    );
+
+
+    mqttClient.on(
+        "message",
+        function(topic, message) {
+
+            if (topic !== MQTT_TOPIC) {
+                return;
+            }
+
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        message.toString()
+                    );
+
+
+                console.log(
+                    "BMS DATA:",
+                    data
+                );
+
+
+                updateDashboard(data);
+                addHistory(data);
+
+            }
+            catch(error) {
+
+                console.error(
+                    "JSON parse error:",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+
+    mqttClient.on(
+        "error",
+        function(error) {
+
+            console.error(
+                "MQTT ERROR:",
+                error
+            );
+
+
+            setStatus(
+                "ERROR",
+                false
+            );
+
+
+            document.getElementById(
+                "loginError"
+            ).innerText =
+                "MQTT connection failed. Check username/password.";
+
+
+            document.getElementById(
+                "loginError"
+            ).style.display =
+                "block";
+
+        }
+    );
+
+
+    mqttClient.on(
+        "close",
+        function() {
+
+            console.log(
+                "MQTT DISCONNECTED"
+            );
+
+
+            setStatus(
+                "DISCONNECTED",
+                false
+            );
+
+        }
+    );
+
+
+    mqttClient.on(
+        "reconnect",
+        function() {
+
+            setStatus(
+                "RECONNECTING",
+                false
+            );
+
+        }
+    );
+
 }
 
-function graph(d){
 
-labels.push(new Date().toLocaleTimeString());
-voltage.push(Number(d.voltage??d.pack_voltage??0));
-current.push(Number(d.current??d.pack_current??0));
-power.push(Number(d.power??d.pack_power??0));
-soc.push(Number(d.soc??0));
+/* =====================================================
+   MQTT STATUS
+   ===================================================== */
 
-if(labels.length>120){
-labels.shift();voltage.shift();current.shift();power.shift();soc.shift();
+function setStatus(text, online) {
+
+    const element =
+        document.getElementById(
+            "mqttStatus"
+        );
+
+
+    element.innerText =
+        text;
+
+
+    element.className =
+        online
+            ? "online"
+            : "offline";
 }
 
-if(!chart){
-chart=new Chart(document.getElementById("chart"),{
-type:"line",
-data:{
-labels:labels,
-datasets:[
-{name:"Voltage",label:"Voltage (V)",data:voltage,yAxisID:"v",tension:.45,borderWidth:3},
-{name:"Current",label:"Current (A)",data:current,yAxisID:"c",tension:.45,borderWidth:3},
-{name:"Power",label:"Power (W)",data:power,yAxisID:"p",tension:.45,borderWidth:3},
-{name:"SOC",label:"SOC (%)",data:soc,yAxisID:"s",tension:.45,borderWidth:3}
-]},
-options:{
-animation:{duration:0},
-responsive:true,
-interaction:{mode:"index",intersect:false},
-scales:{
-v:{position:"left",ticks:{color:"#9aa6b2"}},
-c:{position:"right",ticks:{color:"#9aa6b2"}},
-p:{position:"right",ticks:{color:"#9aa6b2"}},
-s:{position:"right",min:0,max:100,ticks:{color:"#9aa6b2"}}
+
+/* =====================================================
+   NUMBER FORMAT
+   ===================================================== */
+
+function numberValue(
+    value,
+    decimals = 2
+) {
+
+    if (
+        value === undefined ||
+        value === null ||
+        value === ""
+    ) {
+
+        return "---";
+    }
+
+
+    const number =
+        Number(value);
+
+
+    if (isNaN(number)) {
+
+        return "---";
+    }
+
+
+    return number.toFixed(
+        decimals
+    );
 }
+
+
+/* =====================================================
+   TEXT FORMAT
+   ===================================================== */
+
+function textValue(value) {
+
+    if (
+        value === undefined ||
+        value === null
+    ) {
+
+        return "---";
+    }
+
+
+    return value;
 }
-});
+
+
+/* =====================================================
+   PHILIPPINE DATE / TIME
+   ===================================================== */
+
+function formatPhilippineDate(timestamp) {
+
+    if (
+        timestamp === undefined ||
+        timestamp === null ||
+        timestamp === ""
+    ) {
+
+        return "---";
+    }
+
+
+    const seconds =
+        Number(timestamp);
+
+
+    if (
+        isNaN(seconds) ||
+        seconds <= 0
+    ) {
+
+        return "---";
+    }
+
+
+    /*
+       ESP32 sends Unix timestamp
+       in SECONDS.
+
+       JavaScript Date() needs
+       milliseconds.
+
+       Therefore:
+       seconds * 1000
+    */
+
+    const date =
+        new Date(
+            seconds * 1000
+        );
+
+
+    if (
+        isNaN(date.getTime())
+    ) {
+
+        return "---";
+    }
+
+
+    return new Intl.DateTimeFormat(
+        "en-PH",
+        {
+            timeZone:
+                "Asia/Manila",
+
+            year:
+                "numeric",
+
+            month:
+                "2-digit",
+
+            day:
+                "2-digit",
+
+            hour:
+                "2-digit",
+
+            minute:
+                "2-digit",
+
+            second:
+                "2-digit",
+
+            hour12:
+                true
+        }
+    ).format(date);
 }
-else{
-chart.data.labels=labels;
-chart.data.datasets[0].data=voltage;
-chart.data.datasets[1].data=current;
-chart.data.datasets[2].data=power;
-chart.data.datasets[3].data=soc;
-chart.update("none");
+
+
+/* =====================================================
+   UPDATE DASHBOARD
+   ===================================================== */
+
+
+
+
+function formatRuntime(value){
+
+    let hours = Number(value);
+
+    if(isNaN(hours) || hours <= 0){
+        return "---";
+    }
+
+    let totalMinutes = Math.round(hours * 60);
+
+    let h = Math.floor(totalMinutes / 60);
+
+    let m = totalMinutes % 60;
+
+
+    if(h > 0){
+        return h + "h " + m + "m";
+    }
+
+    return m + "m";
+
 }
+
+
+
+function updateBattery(data){
+
+    let soc = Number(data.soc);
+
+    let fill = document.getElementById("batteryFill");
+    let percent = document.getElementById("batteryPercent");
+    let status = document.getElementById("batteryStatus");
+
+
+    if(!isNaN(soc)){
+        fill.style.width = soc + "%";
+        percent.innerText = soc.toFixed(0) + "%";
+    }
+
+
+    let current = Number(data.current ?? data.pack_current ?? 0);
+    let remaining = Number(data.remaining_ah ?? 0);
+    let full = Number(data.full_ah ?? 0);
+
+    let time = 0;
+    let mode = "IDLE";
+
+
+    if(current > 0.5){
+
+        mode = "CHARGING";
+        fill.className = "battery-fill charging";
+
+        if(full > remaining && current > 0){
+
+            let needed = full - remaining;
+            time = needed / current;
+
+        }
+
+
+        status.innerHTML =
+            "CHARGING<br>" +
+            "Time To Full: " +
+            formatRuntime(time);
+
+    }
+
+
+    else if(current < -0.5){
+
+        mode = "DISCHARGING";
+        fill.className = "battery-fill discharging";
+
+        if(remaining > 0){
+
+            time = remaining / Math.abs(current);
+
+        }
+
+
+        status.innerHTML =
+            "DISCHARGING<br>" +
+            "Runtime Left: " +
+            formatRuntime(time);
+
+    }
+
+
+    else{
+
+        fill.className = "battery-fill";
+
+        status.innerHTML =
+            "IDLE";
+
+    }
+
+
+    // Runtime is displayed only inside Battery Level status.
+    // Removed duplicate runtime cards.
+
 }
+
+
+
+
+let historyLabels=[];
+let historyVoltage=[];
+let historyPower=[];
+let historyCurrent=[];
+let historySOC=[];
+
+let historyChart=null;
+
+function addHistory(data){
+
+    let now=new Date().toLocaleTimeString();
+
+    historyLabels.push(now);
+
+    historyVoltage.push(Number(data.voltage ?? data.pack_voltage ?? 0));
+    historyPower.push(Number(data.power ?? data.pack_power ?? 0));
+    historyCurrent.push(Number(data.current ?? data.pack_current ?? 0));
+    historySOC.push(Number(data.soc ?? 0));
+
+
+    if(historyLabels.length>60){
+
+        historyLabels.shift();
+        historyVoltage.shift();
+        historyPower.shift();
+        historyCurrent.shift();
+        historySOC.shift();
+
+    }
+
+    updateHistoryChart();
+
+}
+
+
+
+
+function updateHistoryChart(){
+
+    if(!historyChart){
+
+        historyChart = new Chart(
+            document.getElementById("historyChart"),
+            {
+                type:"line",
+
+                data:{
+                    labels:historyLabels,
+
+                    datasets:[
+                        {
+                            label:"Voltage (V)",
+                            data:historyVoltage,
+                            borderColor:"#35d07f",
+                            backgroundColor:"rgba(53,208,127,0.10)",
+                            tension:0.35,
+                            cubicInterpolationMode:"monotone",
+                            borderWidth:2,
+                            pointRadius:0,
+                            pointHoverRadius:4,
+                            fill:false,
+                            yAxisID:"y"
+                        },
+
+                        {
+                            label:"Current (A)",
+                            data:historyCurrent,
+                            borderColor:"#3aa6ff",
+                            backgroundColor:"rgba(58,166,255,0.10)",
+                            tension:0.35,
+                            cubicInterpolationMode:"monotone",
+                            borderWidth:2,
+                            pointRadius:0,
+                            pointHoverRadius:4,
+                            fill:false,
+                            yAxisID:"y1"
+                        },
+
+                        {
+                            label:"Power (W)",
+                            data:historyPower,
+                            borderColor:"#f2c94c",
+                            backgroundColor:"rgba(242,201,76,0.12)",
+                            tension:0.35,
+                            cubicInterpolationMode:"monotone",
+                            borderWidth:2,
+                            pointRadius:0,
+                            pointHoverRadius:4,
+                            fill:false,
+                            yAxisID:"y1"
+                        },
+
+                        {
+                            label:"SOC (%)",
+                            data:historySOC,
+                            borderColor:"#ff9f43",
+                            backgroundColor:"rgba(255,159,67,0.10)",
+                            tension:0.35,
+                            cubicInterpolationMode:"monotone",
+                            borderWidth:2,
+                            pointRadius:0,
+                            pointHoverRadius:4,
+                            fill:false,
+                            yAxisID:"y1"
+                        }
+                    ]
+                },
+
+                options:{
+                    responsive:true,
+                    maintainAspectRatio:false,
+                    animation:false,
+
+                    interaction:{
+                        mode:"index",
+                        intersect:false
+                    },
+
+                    plugins:{
+                        legend:{
+                            labels:{
+                                color:"#ffffff",
+                                boxWidth:40,
+                                usePointStyle:false
+                            }
+                        },
+                        tooltip:{
+                            enabled:true,
+                            backgroundColor:"#111827",
+                            titleColor:"#ffffff",
+                            bodyColor:"#ffffff",
+                            borderColor:"#303840",
+                            borderWidth:1
+                        }
+                    },
+
+                    elements:{
+                        line:{
+                            capBezierPoints:true
+                        }
+                    },
+
+                    scales:{
+                        x:{
+                            ticks:{
+                                color:"#9aa6b2",
+                                maxTicksLimit:8
+                            },
+                            grid:{
+                                color:"rgba(255,255,255,0.04)"
+                            }
+                        },
+
+                        y:{
+                            position:"left",
+                            ticks:{
+                                color:"#9aa6b2"
+                            },
+                            grid:{
+                                color:"rgba(255,255,255,0.05)"
+                            }
+                        },
+
+                        y1:{
+                            position:"right",
+                            ticks:{
+                                color:"#9aa6b2"
+                            },
+                            grid:{
+                                drawOnChartArea:false
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+    }
+    else{
+
+        historyChart.data.labels = historyLabels;
+
+        historyChart.data.datasets[0].data = historyVoltage;
+        historyChart.data.datasets[1].data = historyCurrent;
+        historyChart.data.datasets[2].data = historyPower;
+        historyChart.data.datasets[3].data = historySOC;
+
+        // Auto scale graph based on actual live values
+        const voltageValues = historyVoltage.filter(v => !isNaN(v));
+        const otherValues = [
+            ...historyCurrent,
+            ...historyPower,
+            ...historySOC
+        ].filter(v => !isNaN(v));
+
+        if(voltageValues.length){
+            const minV = Math.min(...voltageValues);
+            const maxV = Math.max(...voltageValues);
+            historyChart.options.scales.y.min = Math.floor(minV - 0.5);
+            historyChart.options.scales.y.max = Math.ceil(maxV + 0.5);
+        }
+
+        if(otherValues.length){
+            const minO = Math.min(...otherValues);
+            const maxO = Math.max(...otherValues);
+            const padding = Math.max((maxO-minO)*0.15, 10);
+            historyChart.options.scales.y1.min = Math.floor(minO-padding);
+            historyChart.options.scales.y1.max = Math.ceil(maxO+padding);
+        }
+
+        historyChart.update("none");
+
+    }
+
+}
+
+
+
+function updateDashboard(data) {
+ updateBattery(data);
+
+    document.getElementById(
+        "voltage"
+    ).innerText =
+        numberValue(
+            (data.voltage ?? data.pack_voltage),
+            3
+        );
+
+
+    document.getElementById(
+        "current"
+    ).innerText =
+        numberValue(
+            (data.current ?? data.pack_current),
+            3
+        );
+
+
+    document.getElementById(
+        "power"
+    ).innerText =
+        numberValue(
+            (data.power ?? data.pack_power),
+            2
+        );
+
+
+    document.getElementById(
+        "soh"
+    ).innerText =
+        numberValue(
+            data.soh,
+            0
+        );
+
+
+    document.getElementById(
+        "remaining"
+    ).innerText =
+        numberValue(
+            data.remaining_ah,
+            3
+        );
+
+
+    document.getElementById(
+        "full"
+    ).innerText =
+        numberValue(
+            data.full_ah,
+            3
+        );
+
+
+    document.getElementById(
+        "cycles"
+    ).innerText =
+        numberValue(
+            data.cycles,
+            0
+        );
+
+
+    document.getElementById(
+        "avgCell"
+    ).innerText =
+        numberValue(
+            data.avg_cell,
+            3
+        );
+
+
+    document.getElementById(
+        "minCell"
+    ).innerText =
+        numberValue(
+            data.min_cell,
+            3
+        );
+
+
+    document.getElementById(
+        "maxCell"
+    ).innerText =
+        numberValue(
+            data.max_cell,
+            3
+        );
+
+
+    document.getElementById(
+        "delta"
+    ).innerText =
+        numberValue(
+            data.delta_mV,
+            0
+        );
+
+
+    document.getElementById(
+        "tempMos"
+    ).innerText =
+        numberValue(
+            data.temp_mos,
+            1
+        );
+
+
+    document.getElementById(
+        "tempBat1"
+    ).innerText =
+        numberValue(
+            data.temp_bat1,
+            1
+        );
+
+
+    document.getElementById(
+        "tempBat2"
+    ).innerText =
+        numberValue(
+            data.temp_bat2,
+            1
+        );
+
+
+    document.getElementById(
+        "chargeMos"
+    ).innerText =
+        data.charge_mos
+            ? "ON"
+            : "OFF";
+
+
+    document.getElementById(
+        "dischargeMos"
+    ).innerText =
+        data.discharge_mos
+            ? "ON"
+            : "OFF";
+
+
+    document.getElementById(
+        "balanceState"
+    ).innerText =
+        data.balance_state
+            ? "ON"
+            : "OFF";
+
+
+    document.getElementById(
+        "balanceCurrent"
+    ).innerText =
+        numberValue(
+            data.balance_current_mA,
+            0
+        );
+
+
+    document.getElementById(
+        "wifiRssi"
+    ).innerText =
+        numberValue(
+            data.wifi_rssi,
+            0
+        );
+
+
+    document.getElementById(
+        "model"
+    ).innerText =
+        textValue(
+            data.model
+        );
+
+
+    document.getElementById(
+        "software"
+    ).innerText =
+        textValue(
+            data.software
+        );
+
+
+    updateCells(data);
+
+
+    /*
+       FIXED TIMESTAMP
+
+       ESP32:
+       time_t now;
+       time(&now);
+
+       sends Unix seconds.
+
+       We convert it using
+       formatPhilippineDate().
+    */
+
+    const updateText =
+        formatPhilippineDate(
+            data.timestamp
+        );
+
+
+    document.getElementById(
+        "lastUpdate"
+    ).innerText =
+        updateText;
+}
+
+
+/* =====================================================
+   UPDATE CELLS - 8 CELL BATTERY ONLY
+   Cell 9-16 removed
+   ===================================================== */
+
+function updateCellHealth(data){
+
+    const health = document.getElementById("cellHealthStatus");
+    const deltaBox = document.getElementById("cellHealthDelta");
+    const maxBox = document.getElementById("cellHealthMax");
+    const minBox = document.getElementById("cellHealthMin");
+
+    let delta = Number(data.delta_mV);
+
+    if(!isNaN(delta)){
+        deltaBox.innerText = delta.toFixed(0) + " mV";
+
+        if(delta <= 10){
+            health.innerText = "GOOD";
+            health.className = "health-value health-good";
+        }
+        else if(delta <= 30){
+            health.innerText = "WARNING";
+            health.className = "health-value health-warn";
+        }
+        else{
+            health.innerText = "ALERT";
+            health.className = "health-value health-bad";
+        }
+    }
+
+    if(data.max_cell !== undefined){
+        maxBox.innerText = Number(data.max_cell).toFixed(3) + " V";
+    }
+
+    if(data.min_cell !== undefined){
+        minBox.innerText = Number(data.min_cell).toFixed(3) + " V";
+    }
+}
+
+
+function updateCells(data) {
+
+    updateCellHealth(data);
+
+    const container =
+        document.getElementById(
+            "cells"
+        );
+
+
+    container.innerHTML =
+        "";
+
+
+    for (
+        let i = 1;
+        i <= 8;
+        i++
+    ) {
+
+        const key =
+            "cell" + i;
+
+
+        const value =
+            data[key];
+
+
+        const cell =
+            document.createElement(
+                "div"
+            );
+
+
+        cell.className =
+            "cell";
+
+
+        const number =
+            document.createElement(
+                "div"
+            );
+
+
+        number.className =
+            "cell-number";
+
+
+        number.innerText =
+            "CELL " +
+            String(i)
+                .padStart(2, "0");
+
+
+        const voltage =
+            document.createElement(
+                "div"
+            );
+
+
+        voltage.className =
+            "cell-voltage";
+
+
+        if (
+            value === undefined ||
+            value === null ||
+            Number(value) === 0
+        ) {
+
+            voltage.innerText =
+                "---";
+
+        }
+        else {
+
+            voltage.innerText =
+                Number(value)
+                    .toFixed(3) +
+                " V";
+        }
+
+
+        let v = Number(value);
+        if(!isNaN(v)){
+            if(v >= 3.27){
+                cell.classList.add("good");
+            }
+            else if(v >= 3.25){
+                cell.classList.add("warn");
+            }
+            else{
+                cell.classList.add("bad");
+            }
+        }
+
+        cell.appendChild(
+            number
+        );
+
+
+        cell.appendChild(
+            voltage
+        );
+
+        const status = document.createElement("div");
+        status.className = "cell-status";
+
+        if(!isNaN(v)){
+            if(v >= 3.27){
+                status.innerText = "GOOD";
+                status.style.color = "#35d07f";
+            }
+            else if(v >= 3.25){
+                status.innerText = "WARNING";
+                status.style.color = "#f2c94c";
+            }
+            else{
+                status.innerText = "LOW";
+                status.style.color = "#ff5c5c";
+            }
+        }
+
+        cell.appendChild(status);
+
+
+        container.appendChild(
+            cell
+        );
+
+    }
+
+}
+
 </script>
+
 </body>
 </html>
