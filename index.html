@@ -1158,6 +1158,7 @@ let historyMode=[];
 let historyChart=null;
 
 const HISTORY_KEY="JK_BMS_GRAPH_HISTORY";
+const HISTORY_DATE_KEY="JK_BMS_GRAPH_DATE";
 const MAX_HISTORY=360; // 1 hour at 10 sec interval
 
 
@@ -1202,6 +1203,57 @@ function loadHistory(){
 
 
 loadHistory();
+
+// Automatic Philippine midnight graph reset checker
+setInterval(()=>{
+
+    let today = new Date().toLocaleDateString(
+        "en-PH",
+        {timeZone:"Asia/Manila"}
+    );
+
+    let savedDate = localStorage.getItem(
+        HISTORY_DATE_KEY
+    );
+
+    if(savedDate !== today){
+
+        console.log("MIDNIGHT RESET GRAPH");
+
+        historyLabels=[];
+        historyVoltage=[];
+        historyPower=[];
+        historyCurrent=[];
+        historySOC=[];
+        historyMode=[];
+
+        localStorage.setItem(
+            HISTORY_DATE_KEY,
+            today
+        );
+
+        localStorage.removeItem(
+            HISTORY_KEY
+        );
+
+        if(historyChart){
+
+            historyChart.data.labels=[];
+
+            historyChart.data.datasets.forEach(
+                d=>{
+                    d.data=[];
+                }
+            );
+
+            historyChart.update();
+
+        }
+    }
+
+},60000);
+
+
 
 
 
