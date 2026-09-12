@@ -339,7 +339,7 @@ body {
 
 <div class="login" id="loginScreen">
 
-```
+
 <div class="login-box">
 
     <h2>JK BMS Remote Monitor</h2>
@@ -370,13 +370,13 @@ body {
     </div>
 
 </div>
-```
+
 
 </div>
 
 <div class="header">
 
-```
+
 <h1>JK BMS V19 Monitor - 8S LiFePO4</h1>
 
 <div class="status">
@@ -392,13 +392,13 @@ body {
         ---
     </span>
 </div>
-```
+
 
 </div>
 
 <div class="container">
 
-```
+
 
 <div class="section-title">
     ☀ Solar System (Phase 1 Ready)
@@ -657,7 +657,7 @@ Battery Level
 <div class="footer">
     JK BMS V19 Remote Monitor - 8S
 </div>
-```
+
 
 </div>
 
@@ -1274,6 +1274,7 @@ function checkMidnightReset(){
     }
 
 },60000);
+checkMidnightReset();
 
 
 
@@ -1880,6 +1881,19 @@ function updateCells(data) {
 
 }
 
+</script>
+
+
+<script>
+/* Safety check: restore CONNECT button binding */
+window.addEventListener("load", function(){
+    const btn = document.querySelector('button[onclick="connectMQTT()"]');
+    if(btn && typeof connectMQTT !== "function"){
+        btn.onclick = function(){
+            alert("MQTT function failed to load. Please refresh the page.");
+        };
+    }
+});
 </script>
 
 </body>
