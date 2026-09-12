@@ -399,6 +399,31 @@ body {
 <div class="container">
 
 ```
+
+<div class="section-title">
+    ☀ Solar System (Phase 1 Ready)
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-sun card-icon"></i>PV Power</div>
+        <div class="value" id="solarPower">---</div>
+        <span class="unit">W</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-solar-panel card-icon"></i>PV Voltage</div>
+        <div class="value" id="solarVoltage">---</div>
+        <span class="unit">V</span>
+    </div>
+
+    <div class="card">
+        <div class="label"><i class="fa-solid fa-bolt card-icon"></i>Solar Current</div>
+        <div class="value" id="solarCurrent">---</div>
+        <span class="unit">A</span>
+    </div>
+</div>
+
 <div class="section-title">
     Battery
 </div>
@@ -1202,10 +1227,7 @@ function loadHistory(){
 }
 
 
-loadHistory();
-
-// Automatic Philippine midnight graph reset checker
-setInterval(()=>{
+function checkMidnightReset(){
 
     let today = new Date().toLocaleDateString(
         "en-PH",
