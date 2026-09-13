@@ -339,7 +339,7 @@ body {
 
 <div class="login" id="loginScreen">
 
-
+```
 <div class="login-box">
 
     <h2>JK BMS Remote Monitor</h2>
@@ -370,13 +370,13 @@ body {
     </div>
 
 </div>
-
+```
 
 </div>
 
 <div class="header">
 
-
+```
 <h1>JK BMS V19 Monitor - 8S LiFePO4</h1>
 
 <div class="status">
@@ -392,38 +392,13 @@ body {
         ---
     </span>
 </div>
-
+```
 
 </div>
 
 <div class="container">
 
-
-
-<div class="section-title">
-    ☀ Solar System (Phase 1 Ready)
-</div>
-
-<div class="cards">
-    <div class="card">
-        <div class="label"><i class="fa-solid fa-sun card-icon"></i>PV Power</div>
-        <div class="value" id="solarPower">---</div>
-        <span class="unit">W</span>
-    </div>
-
-    <div class="card">
-        <div class="label"><i class="fa-solid fa-solar-panel card-icon"></i>PV Voltage</div>
-        <div class="value" id="solarVoltage">---</div>
-        <span class="unit">V</span>
-    </div>
-
-    <div class="card">
-        <div class="label"><i class="fa-solid fa-bolt card-icon"></i>Solar Current</div>
-        <div class="value" id="solarCurrent">---</div>
-        <span class="unit">A</span>
-    </div>
-</div>
-
+```
 <div class="section-title">
     Battery
 </div>
@@ -657,7 +632,7 @@ Battery Level
 <div class="footer">
     JK BMS V19 Remote Monitor - 8S
 </div>
-
+```
 
 </div>
 
@@ -1183,7 +1158,6 @@ let historyMode=[];
 let historyChart=null;
 
 const HISTORY_KEY="JK_BMS_GRAPH_HISTORY";
-const HISTORY_DATE_KEY="JK_BMS_GRAPH_DATE";
 const MAX_HISTORY=360; // 1 hour at 10 sec interval
 
 
@@ -1227,56 +1201,7 @@ function loadHistory(){
 }
 
 
-function checkMidnightReset(){
-
-    let today = new Date().toLocaleDateString(
-        "en-PH",
-        {timeZone:"Asia/Manila"}
-    );
-
-    let savedDate = localStorage.getItem(
-        HISTORY_DATE_KEY
-    );
-
-    if(savedDate !== today){
-
-        console.log("MIDNIGHT RESET GRAPH");
-
-        historyLabels=[];
-        historyVoltage=[];
-        historyPower=[];
-        historyCurrent=[];
-        historySOC=[];
-        historyMode=[];
-
-        localStorage.setItem(
-            HISTORY_DATE_KEY,
-            today
-        );
-
-        localStorage.removeItem(
-            HISTORY_KEY
-        );
-
-        if(historyChart){
-
-            historyChart.data.labels=[];
-
-            historyChart.data.datasets.forEach(
-                d=>{
-                    d.data=[];
-                }
-            );
-
-            historyChart.update();
-
-        }
-    }
-
-},60000);
-checkMidnightReset();
-
-
+loadHistory();
 
 
 
@@ -1881,19 +1806,6 @@ function updateCells(data) {
 
 }
 
-</script>
-
-
-<script>
-/* Safety check: restore CONNECT button binding */
-window.addEventListener("load", function(){
-    const btn = document.querySelector('button[onclick="connectMQTT()"]');
-    if(btn && typeof connectMQTT !== "function"){
-        btn.onclick = function(){
-            alert("MQTT function failed to load. Please refresh the page.");
-        };
-    }
-});
 </script>
 
 </body>
