@@ -1160,6 +1160,33 @@ let historyChart=null;
 const HISTORY_KEY="JK_BMS_GRAPH_HISTORY";
 const MAX_HISTORY=360; // 1 hour at 10 sec interval
 
+const HISTORY_DATE_KEY="JK_BMS_GRAPH_HISTORY_DATE";
+
+function getPhilippineDate(){
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone:"Asia/Manila",
+        year:"numeric",
+        month:"2-digit",
+        day:"2-digit"
+    }).format(new Date());
+}
+
+function checkDailyGraphReset(){
+    let today = getPhilippineDate();
+    let saved = localStorage.getItem(HISTORY_DATE_KEY);
+
+    if(saved !== today){
+        localStorage.removeItem(HISTORY_KEY);
+        historyLabels=[];
+        historyVoltage=[];
+        historyPower=[];
+        historyCurrent=[];
+        historySOC=[];
+        historyMode=[];
+        localStorage.setItem(HISTORY_DATE_KEY,today);
+    }
+}
+
 
 function saveHistory(){
 
@@ -1174,10 +1201,17 @@ function saveHistory(){
             mode:historyMode
         })
     );
+
+    localStorage.setItem(
+        HISTORY_DATE_KEY,
+        getPhilippineDate()
+    );
 }
 
 
 function loadHistory(){
+
+    checkDailyGraphReset();
 
     let saved=localStorage.getItem(HISTORY_KEY);
 
