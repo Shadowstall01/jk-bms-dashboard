@@ -1177,7 +1177,27 @@ function saveHistory(){
 }
 
 
+function resetHistoryAtMidnight(){
+
+    const now = new Date();
+    const today = now.toLocaleDateString("en-PH", {timeZone:"Asia/Manila"});
+    const lastReset = localStorage.getItem("JK_BMS_GRAPH_LAST_RESET");
+
+    if(lastReset !== today){
+        historyLabels=[];
+        historyVoltage=[];
+        historyPower=[];
+        historyCurrent=[];
+        historySOC=[];
+        historyMode=[];
+        localStorage.setItem("JK_BMS_GRAPH_LAST_RESET", today);
+        localStorage.removeItem(HISTORY_KEY);
+    }
+}
+
 function loadHistory(){
+
+    resetHistoryAtMidnight();
 
     let saved=localStorage.getItem(HISTORY_KEY);
 
