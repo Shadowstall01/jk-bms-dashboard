@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JK BMS Remote Monitor</title>
+<title>JK BMS Remote Monitor - 43Ah</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -377,7 +377,7 @@ body {
 <div class="header">
 
 ```
-<h1>JK BMS V19 Monitor - 8S LiFePO4</h1>
+<h1>JK BMS V19 Monitor - 8S LiFePO4 43Ah</h1>
 
 <div class="status">
     MQTT:
@@ -642,7 +642,7 @@ const MQTT_HOST =
     "wss://4c3d779ff55d416f8193eaa976fce2c4.s1.eu.hivemq.cloud:8884/mqtt";
 
 const MQTT_TOPIC =
-    "jk-bms/data";
+    "jk-bms/new43ah/data";
 
 let mqttClient = null;
 
@@ -1157,7 +1157,7 @@ let historyMode=[];
 
 let historyChart=null;
 
-const HISTORY_KEY="JK_BMS_GRAPH_HISTORY";
+const HISTORY_KEY="JK_BMS_43AH_GRAPH_HISTORY";
 const MAX_HISTORY=360; // 1 hour at 10 sec interval
 
 
